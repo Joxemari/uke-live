@@ -330,7 +330,7 @@ const LESSONS = [
   { h: "Mano izquierda · cuenta el acorde", pose: 4, cap: "cuatro dedos · la cuarta", table: true },
   { h: "Mano izquierda · gírala", pose: 1, flip: true, cap: "dorso a la cámara · pasa a menor", plays: "Cm", table: true },
   { h: "Mano izquierda · levántala", pose: 5, cap: "por encima de la línea · séptima", plays: "G7", table: true },
-  { h: "Mano derecha · rasguea", pose: 5, cap: "arriba y abajo · la velocidad es la fuerza", plays: "↓ ↑", table: false, text: ["abierta y en movimiento rasguea las cuatro cuerdas","más rápido suena más fuerte y más cerrado","quieta no suena nada"] },
+  { h: "Mano derecha · rasguea", pose: 5, cap: "arriba y abajo · la velocidad es la fuerza", plays: "↓ ↑", table: false, text: ["abierta: un golpe rápido hacia abajo o arriba rasguea las cuatro cuerdas","más rápido suena más fuerte y más cerrado","el medidor del plate R enseña la velocidad que ve · barra espaciadora como respaldo"] },
   { h: "Mano derecha · apaga", pose: 0, cap: "puño en movimiento · golpe seco", plays: "chk", table: false, text: ["el puño al moverse apaga las cuerdas","sirve de percusión entre rasgueos"] },
   { h: "Mano derecha · puntea", pose: 1, pinch: true, cap: "pinza con cada dedo · una cuerda", plays: "G C E A", table: false, text: ["pulgar con índice → cuerda G","con corazón → C · anular → E · meñique → A","un arpegio es una pinza detrás de otra"] },
   { h: "Canciones guiadas", pose: 0, cap: "el acorde de ahora y el siguiente · suma puntos", plays: "01", table: false, text: ["elige tema y tempo en 01 · Canción","se marca el acorde que toca y el que viene","sumas puntos por pulso correcto y rasgueo a tiempo"] },
@@ -359,7 +359,8 @@ function palmSign(lm) { const a = { x: lm[5].x - lm[0].x, y: lm[5].y - lm[0].y }
 function poseOf(e) { const [t, i, m, r, p] = e, n = i + m + r + p; if (i && p && !m && !r) return t ? 7 : 6; if (n === 4 && t) return 5; if (n >= 1) return n; return 0; }
 
 let swapped = false, lastPose = { p: 0, flip: false, n: 0 }, live = { pose: 0, flip: false, seventh: false }, chord = chordFrom(0);
-let ss = { y: null, t: 0, lastDir: 0, lastT: 0, pinch: [0,0,0,0], hist: [] };
+let ss = { y: null, t: 0, lastDir: 0, lastT: 0, pinch: [0,0,0,0], armed: true, v: undefined, meter: 0 };
+const ON = .45, OFF = .18;   // umbrales de velocidad vertical (fracción de cuadro / s)
 let seen = { chord: false, strum: false };
 function processHands(res, now) {
   const hands = res.landmarks.map(lm => ({ lm, x: lm[0].x })).sort((a, b) => a.x - b.x);
@@ -375,19 +376,26 @@ function processHands(res, now) {
   if (sh) {
     const lm = sh.lm, y = lm[9].y, e = extended(lm), fist = e.reduce((a, b) => a + b, 0) === 0;
     if (ss.y !== null) {
-      const dt = Math.max(.008, (now - ss.t) / 1000), vy = (y - ss.y) / dt; ss.hist.push(vy); if (ss.hist.length > 3) ss.hist.shift();
-      const v = ss.hist.reduce((a, b) => a + b, 0) / ss.hist.length, dir = Math.sign(v), sp = Math.abs(v);
-      if (sp > 1.1 && now - ss.lastT > 110 && (dir !== ss.lastDir || now - ss.lastT > 260)) {
-        const vel = Math.min(1, (sp - .8) / 3.2);
+      const dt = Math.max(.008, (now - ss.t) / 1000), vy = (y - ss.y) / dt;
+      ss.v = ss.v === undefined ? vy : ss.v * .4 + vy * .6;            // suavizado corto
+      const dir = Math.sign(ss.v), sp = Math.abs(ss.v);
+      ss.meter = sp;
+      const flipped = dir !== 0 && dir !== ss.lastDir && sp > ON;
+      if ((ss.armed || flipped) && sp > ON && now - ss.lastT > 90) {
+        const vel = Math.min(1, (sp - ON * .6) / 2.2);
         if (fist) chuck(vel); else { strum(chord.frets, dir > 0, vel); onStrum(); seen.strum = true; coachCheck(); }
-        ss.lastDir = dir; ss.lastT = now; flashes.push({ x: lm[9].x, y, t: performance.now(), down: dir > 0 });
+        ss.lastDir = dir; ss.lastT = now; ss.armed = false; ss.flashT = now; ss.flashDir = dir;
+        flashes.push({ x: lm[9].x, y, t: performance.now(), down: dir > 0 });
       }
-    }
+      if (sp < OFF) ss.armed = true;
+    } else { ss.v = undefined; ss.armed = true; }
     ss.y = y; ss.t = now;
     const palm = d3(lm[0], lm[9]);
     [8,12,16,20].forEach((tip, i) => { const dd = d3(lm[4], lm[tip]), close = dd < .28 * palm; if (close && !ss.pinch[i]) { pluck(i, chord.frets[i], .75, ctx.currentTime); onStrum(); } ss.pinch[i] = close ? 1 : (dd > .4 * palm ? 0 : ss.pinch[i]); });
-    $("plateR").textContent = fist ? "puño · apaga" : "abierta · lista";
-  } else { ss.y = null; ss.hist = []; $("plateR").textContent = "fuera de cuadro"; }
+    const m = Math.min(1, (ss.meter || 0) / (ON * 2)), bars = "▮".repeat(Math.round(m * 8)) + "▯".repeat(8 - Math.round(m * 8));
+    const hit = now - (ss.flashT || 0) < 220;
+    $("plateR").innerHTML = hit ? `<span style="color:var(--ink)">${ss.flashDir > 0 ? "↓" : "↑"} rasgueo</span>` : `${fist ? "puño" : "abierta"} · <span class="num">${bars}</span>`;
+  } else { ss.y = null; ss.v = undefined; ss.armed = true; $("plateR").textContent = "fuera de cuadro"; }
 }
 let flashes = [];
 function updateChordUI() {
@@ -418,7 +426,7 @@ const COACH = [
   { t1: "Mano izquierda: levanta un dedo", t2: "eso toca el primer acorde", fingers: POSE_FINGERS[1], test: () => live.pose === 1 },
   { t1: "Cambia a cuatro dedos", t2: "la cuarta · mira cómo cambia el nombre", fingers: POSE_FINGERS[4], test: () => live.pose === 4 },
   { t1: "Gira la mano", t2: "dorso a la cámara · el acorde pasa a menor", fingers: POSE_FINGERS[4], flip: true, test: () => live.flip && live.pose > 0 },
-  { t1: "Mano derecha: rasguea", t2: "abierta, arriba y abajo delante de ti", fingers: [1,1,1,1,1], test: () => seen.strum },
+  { t1: "Mano derecha: rasguea", t2: "abierta · un golpe rápido hacia abajo (o barra espaciadora)", fingers: [1,1,1,1,1], test: () => seen.strum },
   { t1: "Ya está · elige una canción en 01", t2: "o toca libre · el acorde lo pone tu mano", fingers: [1,1,1,1,1], test: () => false },
 ];
 let ci = 0, coachOn = true, coachTimer = null;
@@ -524,6 +532,12 @@ function loop() {
 }
 
 /* ================= EVENTOS ================= */
+let kbDown = true;
+window.addEventListener("keydown", e => {
+  if (e.repeat || !ctx || $("perf").hidden || /INPUT|SELECT|BUTTON/.test(document.activeElement.tagName)) return;
+  if (e.code === "Space") { e.preventDefault(); kbDown = !e.shiftKey; strum(chord.frets, kbDown, .8); onStrum(); seen.strum = true; coachCheck(); flashes.push({ x: .25, y: .55, t: performance.now(), down: kbDown }); }
+  if (e.code === "KeyM") chuck(.7);
+});
 $("start").onclick = start;
 $("exit").onclick = () => { if (playing) stopSong(); location.reload(); };
 $("key").onchange = e => { key = e.target.value; chord = chordFrom(live.pose, live.flip, live.seventh); updateChordUI(); };
