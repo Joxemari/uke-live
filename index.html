@@ -188,7 +188,8 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .plate .side.r{text-align:right}
 .plate .beats{display:flex;gap:8px;padding-bottom:2px;font-size:16px;line-height:1;color:var(--ink-38);font-variant-numeric:tabular-nums}.plate .beats i{font-style:normal;width:14px;text-align:center;transition:color .05s,transform .05s}.plate .beats i.on{color:var(--ink);transform:scale(1.35)}.plate .beats i.one{color:var(--ink-62)}.plate .beats i.one.on{color:var(--ink)}
 .plate .rule{grid-column:1/-1;height:1px;background:var(--ink-16);margin-top:8px;position:relative}
-.plate .rule i{position:absolute;left:0;top:0;height:1px;background:var(--ink);width:0}
+.plate .rule i{position:absolute;left:0;top:0;height:1px;background:var(--ink);width:0;z-index:1}
+.plate .rule canvas{position:absolute;left:0;right:0;bottom:1px;width:100%;height:40px;opacity:.75;pointer-events:none}
 .bar{position:relative;display:flex;align-items:stretch;height:60px;border-top:1px solid var(--ink-16);padding:0 14px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
 .bar::-webkit-scrollbar{display:none}
 .bar .grp{display:flex;align-items:center;gap:18px;padding:0 26px;border-left:1px solid var(--ink-16);white-space:nowrap;flex:none}
@@ -270,7 +271,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
         <div class="h"><span>L / Acordes</span><small id="hpLst">palma</small><button class="x" data-hp="hpL">cerrar</button></div>
         <table id="hpTable"></table>
         <div class="sec" id="hpFlip" hidden><span class="k2">Calidad · gira la mano</span><div class="opts"><span class="opt" id="oPalm">palma · mayor</span><span class="opt" id="oBack">dorso · menor</span></div></div>
-        <div class="sec"><span class="k2">Giro de muñeca → más ritmo (corcheas)</span><div class="meter"><i id="hpRollL" style="width:0%"></i></div></div>
+        <div class="sec"><span class="k2">Giro (como un pomo) → corcheas</span><div class="meter"><i id="hpRollL" style="width:0%"></i></div></div>
         <div class="sec"><span class="k2">Altura · sube la mano</span><div class="opts"><span class="opt" id="oL0">básico</span><span class="opt" id="oL1">séptima</span><span class="opt" id="oL2">agudo</span><span class="opt" id="oL3">muy agudo</span></div></div>
       </aside>
       <aside class="hp r" id="hpR" hidden>
@@ -293,10 +294,10 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
       <div class="lyr" id="lyr"></div>
       <div class="sing" id="sing" hidden><span class="k">Hoja · acorde y pose<span id="singTitle"></span></span><div class="k" id="singNote" style="color:var(--ink-62);text-transform:none;letter-spacing:.04em;font-size:11px"></div><div class="lines" id="singLines"></div></div>
       <div class="plate">
-        <div class="side"><span>L · Acordes</span><small id="plateL">—</small></div>
+        <div class="side"><span id="plateLName">L · Acordes</span><small id="plateL">—</small></div>
         <div class="beats" id="beats"></div>
-        <div class="side r"><span>R · Rasgueo</span><small id="plateR">—</small></div>
-        <div class="rule"><i id="prog"></i></div>
+        <div class="side r"><span id="plateRName">R · Rasgueo</span><small id="plateR">—</small></div>
+        <div class="rule"><i id="prog"></i><canvas id="wave" width="1200" height="40"></canvas></div>
       </div>
       <div class="summary" id="lyrEd" hidden><div class="box" style="width:min(640px,94%)"><span class="k">Letra propia · <span id="lyrEdTitle"></span></span>
         <p>Pega la letra, <b>una línea por cada acorde de la hoja</b> (el orden de la derecha). Las líneas de sección (intro, estrofa…) se saltan solas. Se guarda solo en este navegador.</p>
@@ -397,7 +398,8 @@ const noteName = m => names()[m % 12] + (Math.floor(m / 12) - 1);
 const chordNotes = c => c.frets.map((f, i) => noteName(OPEN[i] + f)).join("  ");
 
 /* ================= AUDIO: Karplus-Strong + caja ================= */
-let ctx, master, bodyIn, cache = new Map(), perString = [null,null,null,null];
+let ctx, master, bodyIn, cache = new Map(), perString = [null,null,null,null], analyser = null, waveBuf = null;
+function drawWave() { if (!analyser) return; const c = $("wave"), g = c.getContext("2d"); analyser.getByteTimeDomainData(waveBuf); g.clearRect(0, 0, c.width, c.height); g.strokeStyle = "rgba(233,231,226,.55)"; g.lineWidth = 1; g.beginPath(); const n = waveBuf.length; for (let i = 0; i < n; i += 2) { const x = i / n * c.width, y = c.height / 2 + (waveBuf[i] - 128) / 128 * (c.height / 2 - 2); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
 function initAudio() {
   if (ctx) return;
   ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -408,6 +410,7 @@ function initAudio() {
   const conv = ctx.createConvolver(); conv.buffer = ir(.45); const wet = ctx.createGain(); wet.gain.value = .12;
   bodyIn.connect(hp); hp.connect(air); air.connect(wood); wood.connect(lp); lp.connect(comp); lp.connect(conv); conv.connect(wet); wet.connect(comp);
   comp.connect(master); master.connect(ctx.destination);
+  analyser = ctx.createAnalyser(); analyser.fftSize = 1024; master.connect(analyser); waveBuf = new Uint8Array(analyser.fftSize);
   function mk(t, f, q, g) { const b = ctx.createBiquadFilter(); b.type = t; b.frequency.value = f; b.Q.value = q; if (g) b.gain.value = g; return b; }
 }
 function ir(sec) { const sr = ctx.sampleRate, n = Math.floor(sr * sec), b = ctx.createBuffer(2, n, sr); for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3.2) * .6; } return b; }
@@ -517,7 +520,7 @@ const LESSONS = [
   { h: "Opcional · gírala (dorso = menor)", pose: 1, cap: "apagado por defecto · actívalo en 02 · Acordes", table: true, anim: "flip" },
   { h: "Mano izquierda · levántala", pose: 5, cap: "baja · básico", plays: "G", table: false, anim: "height", lv: ["muy agudo", "agudo", "con séptima", "básico"] },
   { h: "El ritmo va solo", pose: 4, cap: "mantén el acorde y suena · suéltalo y calla", plays: "D DU UDU", table: false, anim: "pattern", slots: "D-DU-UDU" },
-  { h: "Mano izquierda · gira la muñeca", pose: 5, cap: "palma plana: el patrón · de canto: corcheas", plays: "patrón", table: false, anim: "roll", lv: ["patrón · plana", "corcheas · de canto"] },
+  { h: "Mano izquierda · gírala como un pomo", pose: 5, cap: "recta: el patrón · inclinada 30°: corcheas", plays: "patrón", table: false, anim: "roll", lv: ["patrón · recta", "corcheas · inclinada"] },
   { h: "Mano derecha · rasguea tú", pose: 5, cap: "enséñala y el patrón se calla · quítala y vuelve", plays: "↓ ↑", table: false, text: ["pásala arriba y abajo: cada pasada es un rasgueo","alta suena fuerte, baja suave · puño: apaga","pinza del pulgar con un dedo: una cuerda (G C E A)"] },
   { h: "Canciones guiadas", pose: 0, cap: "el acorde de ahora, el siguiente y qué dedos", plays: "01", table: false, text: ["elige tema y tempo en 03 · Canción","se marca el acorde que toca, el que viene y la pose","sumas puntos por pulso correcto"] },
 ];
@@ -536,7 +539,7 @@ function animateLesson() {
     else if (L.anim === "flip") { const f = lessonTick % 2 === 1, c = chordFrom(1, f); setHand(POSE_FINGERS[1], f); box.querySelector(".plays .v").textContent = c.roman + " " + c.name; box.querySelectorAll("table tr").forEach((tr, i) => tr.classList.toggle("on", i === 1)); box.querySelectorAll("table td:last-child").forEach((td, i) => { if (i) { const cc = chordFrom(i, f); td.textContent = cc.roman + " " + cc.name; } }); box.querySelector(".cap span").textContent = f ? "dorso a la cámara · menor" : "palma a la cámara · mayor"; }
     else if (L.anim === "height") { const lv = lessonTick % 4, c = chordFrom(5, false, lv); const h = box.querySelector(".hand"); h.style.transform = `translateY(${(1.5 - lv) * 22}px)`; h.style.transition = "transform .9s cubic-bezier(.4,0,.2,1)"; box.querySelector(".plays .v").textContent = c.name; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", 3 - i === lv)); box.querySelector(".cap span").textContent = ["baja · básico", "media · con séptima", "alta · agudo", "arriba · muy agudo"][lv]; }
     else if (L.anim === "pattern") { const sl = "D-DU-UDU", k = lessonTick % 8; box.querySelectorAll(".slot").forEach((el, i) => el.classList.toggle("on", i === k)); }
-    else if (L.anim === "roll") { const r = (Math.sin(lessonTick / 4) + 1) / 2, h = box.querySelector(".hand"); h.style.transform = `scaleX(${1 - r * .7})`; h.style.transition = "transform .3s linear"; const d = r < .5 ? 0 : 1; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === d)); box.querySelector(".plays .v").textContent = ["patrón", "corcheas"][d]; }
+    else if (L.anim === "roll") { const r = (Math.sin(lessonTick / 4) + 1) / 2, h = box.querySelector(".hand"); h.style.transform = `rotate(${-r * 45}deg)`; h.style.transformOrigin = "60% 90%"; h.style.transition = "transform .3s linear"; const d = r < .5 ? 0 : 1; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === d)); box.querySelector(".plays .v").textContent = ["patrón", "corcheas"][d]; }
     else if (L.anim === "pinch") { const k = lessonTick % 4; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === k)); box.querySelector(".plays .v").textContent = ["G", "C", "E", "A"][k]; }
   }, LESSONS[li].anim === "pattern" ? 333 : LESSONS[li].anim === "roll" ? 120 : 1100);
   const L = LESSONS[li]; handCur = handCur.slice(); setHand(L.pose ? POSE_FINGERS[L.pose] : [0,0,0,0,0]);
@@ -602,12 +605,12 @@ function processHands(res, now) {
     if (bestN >= 4) { const vp = best >> 1, vf = !!(best & 1);
       if (vp !== live.pose || vf !== live.flip || lvl !== live.level) { const wasOpen = chord.open; live = { pose: vp, flip: vf, level: lvl }; chord = chordFrom(vp, vf, lvl); if (vp) seen.chord = true; updateChordUI(); coachCheck();
         if (!chord.open && (wasOpen || vp !== 0) && ctx.currentTime - lastAutoStrum > .16) { strum(chord.frets, true, .6 * rightVel + .2); lastAutoStrum = ctx.currentTime; } } }
-    $("plateL").textContent = (p ? POSE_SHORT[p] + (flip ? " · dorso" : " · palma") + " · " + LEVEL_NAME[lvl] : "sin pose · al aire") + ` · giro ${(rollL || 0).toFixed(2)}`;
+    $("plateL").textContent = (p ? POSE_SHORT[p] + (flip ? " · dorso" : " · palma") + " · " + LEVEL_NAME[lvl] : "sin pose · al aire") + ` · giro ${Math.round((rollL || 0) * 60)}°`;
     handPos.L = ch.lm; { const r = rollOf(ch.lm, "L", ch.wl); rollL = rollL === null ? r : rollL * .75 + r * .25; applyRoll(rollL); }
     $("hpRollL").style.width = Math.round((rollL || 0) * 100) + "%"; $("hpL").hidden = !helpOn; $("ladL").hidden = false; setLadder("ladL", hy, LEVEL_NAME[lvl].toUpperCase());
   } else { handPos.L = null; rollL = null; handY = null; poseHist = []; $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } }
   if (sh) {
-    const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), fist = e.reduce((a, b) => a + b, 0) === 0;
+    const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), fist = !e[1] && !e[2] && !e[3] && !e[4];
     if (ss.y !== null) {
       const dt = Math.max(.008, (now - ss.t) / 1000), vy = (y - ss.y) / dt;
       ss.v = ss.v === undefined ? vy : ss.v * .4 + vy * .6;            // suavizado corto
@@ -656,6 +659,7 @@ function draw(res) {
     const c = { x: (lm[0].x + lm[5].x + lm[17].x) / 3, y: (lm[0].y + lm[5].y + lm[17].y) / 3 }; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(c.x * W - 6, c.y * H); cx.lineTo(c.x * W + 6, c.y * H); cx.moveTo(c.x * W, c.y * H - 6); cx.lineTo(c.x * W, c.y * H + 6); cx.stroke();
   });
   if (inst === "txala") drawTxala(W, H);
+  if (inst === "synth") { drawArc(W, H); if (synthLine) drawNoteLine(W, H, synthLine.lm, synthLine.label); }
   // etiquetas pegadas a la mano y arco de giro (texto sin espejo)
   const label = (lm, lines, arcVal, rightSide = false) => {
     const wx = lm[0].x * W, wy = Math.min(lm[0].y * H, H - 60), px = lm[9].x * W, py = lm[9].y * H;
@@ -672,8 +676,8 @@ function draw(res) {
     cx.restore();
   };
   if (inst === "txala") { if (handPos.L) label(handPos.L, ["EZKERRA", `${txalaCount.L} golpes`], undefined, true); if (handPos.R) label(handPos.R, ["ESKUINA", `${txalaCount.R} golpes`]); }
-  else if (inst === "synth") { if (handPos.L) label(handPos.L, ["L · PAD", live.pose ? `${chord.roman} ${chord.name}` : "sin pose", `filtro ${Math.round((rollL || 0) * 100)}`], rollL || 0, true); if (handPos.R) label(handPos.R, ["R · " + ({ melody: "MELODÍA", drums: "BATERÍA", bass: "BAJO" }[synthMode]), "puño 1 s: cambiar modo"]); }
-  else if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro ${(rollL || 0).toFixed(2)} · ${DENS_NAME[density]}`], rollL || 0, true);
+  else if (inst === "synth") { if (handPos.L) label(handPos.L, ["L · PAD", live.pose ? `${chord.roman} ${chord.name}` : "sin pose", `cutoff ${(rollL || 0).toFixed(2)}`], rollL || 0, true); if (handPos.R && !arc) label(handPos.R, ["R · " + ({ melody: "MELODÍA", drums: "BATERÍA", bass: "BAJO" }[synthMode]), synthMode === "melody" ? `cutoff ${leadCut.toFixed(2)}` : "puño = modos"], synthMode === "melody" ? leadCut : undefined); }
+  else if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro ${Math.round((rollL || 0) * 60)}° · ${DENS_NAME[density]}`], rollL || 0, true);
   if (handPos.R) label(handPos.R, ["R · RASGUEO", "arriba y abajo · puño apaga"], undefined, false);
   const now = performance.now(); flashes = flashes.filter(f => now - f.t < 240);
   flashes.forEach(f => { const k = (now - f.t) / 240; cx.strokeStyle = `rgba(233,231,226,${1 - k})`; cx.lineWidth = 1.5; const y = f.y * H + (f.down ? 1 : -1) * 70 * k; cx.beginPath(); cx.moveTo(f.x * W - 50, y); cx.lineTo(f.x * W + 50, y); cx.stroke(); });
@@ -705,7 +709,7 @@ const COACH = [
   { t1: "Mano izquierda · levanta un dedo", t2: "suena el primer acorde · bájala y se calla", fingers: POSE_FINGERS[1], test: () => live.pose === 1 },
   { t1: "Ahora cuatro dedos", t2: "otro acorde · cada número de dedos es un acorde de la tonalidad", fingers: POSE_FINGERS[4], test: () => live.pose === 4 },
   { t1: "Sube la mano", t2: "más alta, más agudo · la escalera de la izquierda te lo marca", fingers: POSE_FINGERS[4], test: () => live.level >= 1 },
-  { t1: "Gira la muñeca de canto", t2: "el ritmo dobla a corcheas · plana, vuelve al patrón", fingers: [1,1,1,1,1], test: () => density === 3 },
+  { t1: "Gira la mano como un pomo", t2: "inclínala 30° o más y el ritmo dobla a corcheas · recta, vuelve al patrón", fingers: [1,1,1,1,1], test: () => density === 3 },
   { t1: "Mano derecha · pásala arriba y abajo", t2: "el patrón se calla y rasgueas tú · quítala y el patrón vuelve", fingers: [1,1,1,1,1], test: () => seen.strum },
   { t1: "Listo", t2: "abajo, en 03 · Canción, elige un tema y pulsa Tocar · o sigue tocando libre", fingers: [1,1,1,1,1], test: () => false },
 ];
@@ -747,15 +751,15 @@ function tapTempo(now) {   // en modo libre, las pasadas de la derecha marcan el
 }
 let wMax = { L: 0, R: 0 }, rollDbg = null;
 function rollOf(lm, role = "L", wl = null) {
-  // giro = componente lateral de la normal 3D de la palma (worldLandmarks): plana ≈ 0.1 · de canto ≈ 0.95. La inclinación va a la componente vertical y no cuenta.
-  const P = wl || lm, sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
-  const a = sub(P[5], P[0]), b = sub(P[17], P[0]);
-  const n = { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }, nl = Math.hypot(n.x, n.y, n.z) || 1;
-  const nx = Math.abs(n.x / nl), r = Math.max(0, Math.min(1, nx));
-  rollDbg = { role, nx: +nx.toFixed(2), ny: +Math.abs(n.y / nl).toFixed(2), r: +r.toFixed(2) };
+  // giro = inclinación del eje muñeca→nudillo medio respecto a la vertical, en el plano de la cámara (como girar un pomo)
+  const asp = canvas.width / Math.max(1, canvas.height);
+  const dx = (lm[9].x - lm[0].x) * asp, dy = lm[9].y - lm[0].y;
+  const deg = Math.abs(Math.atan2(dx, -dy)) * 180 / Math.PI;      // 0° = mano vertical
+  const r = Math.max(0, Math.min(1, deg / 60));
+  rollDbg = { role, deg: Math.round(deg), r: +r.toFixed(2) };
   return r;
 }
-function applyRoll(r) { rollVal = r; let d = r > .55 ? 3 : r < .42 ? 2 : (density === 3 ? 3 : 2); if (d !== density) { density = d; setBeats(); } }
+function applyRoll(r) { rollVal = r; let d = r > .5 ? 3 : r < .38 ? 2 : (density === 3 ? 3 : 2); if (d !== density) { density = d; setBeats(); } }
 let density = 2, rollS = null, rollVal = 0, handPos = { L: null, R: null };      // 0 escaso · 1 negras · 2 patrón · 3 corcheas  (giro de muñeca)
 const DENS_NAME = ["escaso", "negras", "patrón", "corcheas"];
 function slotsNow() { const base = pat().slots, n = base.length; if (patKey === "manual") return base;
@@ -774,7 +778,7 @@ function startTransport() {
       if (slot % 2 === 0) { T.beatT = when; T.next = when + spb * T.swing; } else T.next = T.beatT + spb;
       const c = slotsNow()[slot];
       // metrónomo en negras
-      if (metroOn && slot % 2 === 0 && (!playing || true)) click(slot === 0, when);
+      if (metroOn && slot % 2 === 0 && (!playing || true)) { if (inst === "txala") { plankHit(1, when, .35); plankHit(1, when + spb * .5, .25); } else click(slot === 0, when); }
       // auto-rasgueo si hay acorde puesto
       if (inst === "synth") {
         if (drumsAuto >= 1) { if (slot % 4 === 0) kick(when, .9); if (slot % 4 === 2) snare(when, .8); if (drumsAuto === 2) hat(when, slot % 2 ? .5 : .8, false); }
@@ -815,7 +819,7 @@ function buildTl(s) {
 }
 const SECTION = SECTION_RX;
 function renderSing() {
-  const on = $("singChk").checked && !$("perf").hidden; $("sing").hidden = !on; if (!on) return;
+  const on = $("singChk").checked && !$("perf").hidden && (inst === "uke" || playing); $("sing").hidden = !on; if (!on) return;
   if (!playing) { const sg = SONGS[$("song").value]; const sk = key, ss2 = scaleKey; key = KEYS.indexOf(sg.key); scaleKey = sg.scale || "major"; buildTl(sg); key = sk; scaleKey = ss2; }
   const own = customLyrics(SONGS[$("song").value]), hasLyrics = tl.some(c => c.lyric && !c.sec);
   $("singNote").textContent = hasLyrics ? (playing ? "" : "pulsa Tocar · la línea actual se marca en verde") : "sin letra por derechos · pulsa Letra propia y pégala";
@@ -877,7 +881,8 @@ function stopSong() { playing = false; setTimeout(renderHpL, 0); setTimeout(rend
 /* ================= INSTRUMENTOS: SYNTH y TXALAPARTA ================= */
 let inst = "uke", synthMode = "melody";
 const INST_HINT = { uke: "cuerda · izquierda el acorde, derecha el rasgueo", synth: "síntesis · el acorde suena mientras dura la pose · altura añade notas · giro abre el filtro · derecha: melodía, batería o bajo", txala: "percusión · dos manos, dos makilak · golpe hacia abajo = golpe en la tabla · la posición elige la tabla" };
-function setInst(k) { inst = k; document.querySelectorAll("#instSel button").forEach(b => b.setAttribute("aria-pressed", b.dataset.i === k)); $("instHint").textContent = INST_HINT[k]; $("instBar").value = k; $("modeFld").hidden = k !== "synth";
+let hpRUke = null;
+function setInst(k) { document.querySelector(".center").style.visibility = k === "txala" ? "hidden" : "visible"; if (!hpRUke) hpRUke = $("hpR").innerHTML; if (k === "uke") $("hpR").innerHTML = hpRUke; inst = k; if (!$("perf").hidden) renderSing(); $("plateRName").textContent = k === "uke" ? "R · Rasgueo" : k === "synth" ? "R · Modo" : "Eskuina"; $("plateLName").textContent = k === "txala" ? "Ezkerra" : k === "synth" ? "L · Pad" : "L · Acordes"; document.querySelectorAll("#instSel button").forEach(b => b.setAttribute("aria-pressed", b.dataset.i === k)); $("instHint").textContent = INST_HINT[k]; $("instBar").value = k; $("modeFld").hidden = k !== "synth";
   if (ctx) { padStop(); } document.body.dataset.inst = k; if (!$("perf").hidden) { renderHpL(); } }
 
 // --- notas extendidas para el pad (diatónicas): triada · +7 · +9 · +13
@@ -912,11 +917,13 @@ let lead = null;
 function leadNoteFor(y) { const steps = 14, idx = Math.max(0, Math.min(steps - 1, Math.floor((1 - y) * steps))); const sc = SCALE(); return 60 + key + sc[idx % 7] + 12 * Math.floor(idx / 7); }
 function leadOn(midi, finger) {
   const f = 440 * Math.pow(2, (midi - 69) / 12);
-  if (!lead) { const o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); o.type = ["square", "sawtooth", "triangle", "sine"][finger]; fl.type = "lowpass"; fl.frequency.value = 2200; fl.Q.value = 2;
-    g.gain.value = .0001; o.connect(fl); fl.connect(g); g.connect(master); o.start(); lead = { o, fl, g, finger }; }
+  if (!lead) { const o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); o.type = ["sawtooth", "square", "sine", "triangle"][finger]; fl.type = "lowpass"; fl.frequency.value = 500 * Math.pow(2, leadCut * 3.5); fl.Q.value = finger === 0 ? 4 : 1.5;
+    g.gain.value = .0001; o.connect(fl); fl.connect(g); g.connect(master); o.start();
+    let vib = null; if (finger === 2 || finger === 3) { vib = ctx.createOscillator(); const vg = ctx.createGain(); vib.frequency.value = finger === 2 ? 6 : 5; vg.gain.value = finger === 2 ? 6 : 3; vib.connect(vg); vg.connect(o.detune); vib.start(); }
+    if (finger === 3) { const n = ctx.createBufferSource(); n.buffer = noiseBuf(2); n.loop = true; const nf = ctx.createBiquadFilter(); nf.type = "bandpass"; nf.frequency.value = 2500; nf.Q.value = .6; const ng = ctx.createGain(); ng.gain.value = .03; n.connect(nf); nf.connect(ng); ng.connect(g); n.start(); lead = { o, fl, g, finger, vib, n }; } else lead = { o, fl, g, finger, vib }; }
   lead.o.frequency.setTargetAtTime(f, ctx.currentTime, .03); lead.g.gain.setTargetAtTime(.18, ctx.currentTime, .02);
 }
-function leadOff() { if (!lead) return; const l = lead; lead = null; l.g.gain.setTargetAtTime(.0001, ctx.currentTime, .08); l.o.stop(ctx.currentTime + .5); }
+function leadOff() { if (!lead) return; const l = lead; lead = null; l.g.gain.setTargetAtTime(.0001, ctx.currentTime, .08); l.o.stop(ctx.currentTime + .5); if (l.vib) l.vib.stop(ctx.currentTime + .5); if (l.n) l.n.stop(ctx.currentTime + .5); }
 
 // --- BATERÍA
 function kick(when, v = 1) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(150, when); o.frequency.exponentialRampToValueAtTime(45, when + .12); g.gain.setValueAtTime(.9 * v, when); g.gain.exponentialRampToValueAtTime(.0001, when + .3); o.connect(g); g.connect(master); o.start(when); o.stop(when + .32); }
@@ -946,6 +953,32 @@ let txalaFlash = [0, 0, 0], txalaHands = { L: { y: null, t: 0, v: 0, armed: true
 
 // --- gestor de manos para synth / txalaparta
 let synthState = { L: { pinch: [0,0,0,0] }, R: { pinch: [0,0,0,0], fistT: 0 } };
+const MODES = [["drums", "BATERÍA"], ["bass", "BAJO"], ["melody", "MELODÍA"]];
+let arc = null;   // { ax, ay, sel } mientras el puño está cerrado
+const VOICES = [["índice", "sierra"], ["corazón", "pulso"], ["anular", "theremin"], ["meñique", "flauta"]];
+let leadCut = .6;
+function renderHpSynth() {
+  const h = $("hpR"); h.hidden = !helpOn; const m = synthMode;
+  const head = `<div class="h"><span>R / ${({ melody: "Melodía", drums: "Batería", bass: "Bajo" })[m]}</span><small>puño → arco de modos</small></div>`;
+  if (m === "melody") h.innerHTML = head + `<div class="sec"><span class="k2">Pinza → voz</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${VOICES.map((v, i) => `<span class="opt" id="oV${i}">${v[0]} · ${v[1]}</span>`).join("")}</div></div><div class="sec"><span class="k2">Altura → nota</span><span class="st">${KEYS[key]} ${SCALES[scaleKey].name.toLowerCase()} · dos octavas</span></div><div class="sec"><span class="k2">Giro → cutoff</span><div class="meter"><i id="hpCut" style="width:60%"></i></div></div>`;
+  else if (m === "drums") h.innerHTML = head + `<div class="sec"><span class="k2">Pinza → kit</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${["índice · bombo", "corazón · caja", "anular · charles", "meñique · tom"].map((v, i) => `<span class="opt" id="oV${i}">${v}</span>`).join("")}</div></div><div class="sec"><span class="k2">Giro → patrón</span><div class="opts"><span class="opt" id="oD0">manual</span><span class="opt" id="oD1">bombo+caja</span><span class="opt" id="oD2">+charles</span></div></div>`;
+  else h.innerHTML = head + `<div class="sec"><span class="k2">Pinza → nota</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${["índice · raíz", "corazón · quinta", "anular · octava", "meñique · cuarta"].map((v, i) => `<span class="opt" id="oV${i}">${v}</span>`).join("")}</div></div><div class="sec"><span class="k2">Giro → movimiento</span><div class="opts"><span class="opt" id="oD1">raíces</span><span class="opt" id="oD2">quinta y octavas</span></div></div>`;
+}
+function drawArc(W, H) {
+  if (!arc) return; const cxp = W - arc.ax * W, cyp = arc.ay * H, R = Math.min(W, H) * .22;
+  cx.save(); cx.translate(W, 0); cx.scale(-1, 1);
+  cx.strokeStyle = "rgba(233,231,226,.25)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(cxp, cyp, R, Math.PI * .55, Math.PI * 1.45); cx.stroke();
+  MODES.forEach(([k, name], i) => { const a = Math.PI * (.62 + i * .38); const x = cxp + Math.cos(a) * R, y = cyp + Math.sin(a) * R; const on = arc.sel === i;
+    cx.font = "11px Geist Mono, monospace"; const w = cx.measureText(name).width + 22; cx.fillStyle = on ? "rgba(233,231,226,.92)" : "rgba(6,7,10,.85)"; cx.fillRect(x - w, y - 11, w, 22); cx.strokeStyle = on ? "#e9e7e2" : "rgba(233,231,226,.3)"; cx.strokeRect(x - w, y - 11, w, 22);
+    cx.fillStyle = on ? "#06070a" : "rgba(233,231,226,.7)"; cx.textAlign = "right"; cx.fillText(name, x - 11, y + 4); cx.fillStyle = "rgba(233,231,226,.4)"; cx.font = "9px Geist Mono, monospace"; cx.fillText("0" + (i + 1), x - w + 14, y + 3); });
+  cx.fillStyle = "rgba(233,231,226,.6)"; cx.font = "9px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText("MODO", cxp, cyp + R + 22); cx.fillStyle = "rgba(233,231,226,.4)"; cx.fillText("MUEVE · MANO ABIERTA = ELIGE · FUERA = CANCELA", cxp, cyp + R + 36);
+  cx.restore();
+}
+function drawNoteLine(W, H, lm, label) {
+  const px = W - lm[9].x * W, py = lm[9].y * H, lx = W - 26 - 10;   // escalera derecha
+  cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.setLineDash([2, 6]); cx.strokeStyle = "rgba(233,231,226,.45)"; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(px + 30, py); cx.lineTo(lx - 60, py); cx.stroke(); cx.setLineDash([]);
+  cx.fillStyle = "#e9e7e2"; cx.font = "16px Geist Mono, monospace"; cx.textAlign = "right"; cx.fillText(label, lx - 66, py + 5); cx.restore();
+}
 function processSynth(hands, now) {
   let ch = null, sh = null;
   if (hands.length === 2) { ch = swapped ? hands[0] : hands[1]; sh = swapped ? hands[1] : hands[0]; }
@@ -964,46 +997,65 @@ function processSynth(hands, now) {
   } else { handPos.L = null; poseHist = []; handY = null; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } padStop(); $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; }
   // mano derecha según modo
   if (sh) {
-    const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), fist = e.reduce((a, b) => a + b, 0) === 0, palm = d3(lm[0], lm[9]);
-    const pin = [8,12,16,20].map(tip => d3(lm[4], lm[tip]) < .22 * palm);
-    // puño mantenido 0,6 s → siguiente modo
-    if (fist) { if (!synthState.R.fistT) synthState.R.fistT = now; else if (now - synthState.R.fistT > 600) { synthState.R.fistT = now + 1e9; const ms = ["melody", "drums", "bass"]; setSynthMode(ms[(ms.indexOf(synthMode) + 1) % 3]); } } else synthState.R.fistT = 0;
+    const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), fist = !e[1] && !e[2] && !e[3] && !e[4], palm = d3(lm[0], lm[9]);
+    const pin = fist ? [false, false, false, false] : [8,12,16,20].map(tip => d3(lm[4], lm[tip]) < .22 * palm);
+    // arco de modos: puño → aparece anclado · mover → resalta · abrir → elige
+    if (fist) { if (!arc) arc = { ax: lm[9].x, ay: y, sel: MODES.findIndex(m => m[0] === synthMode), t: now };
+      else if (now - arc.t > 250) { const dx = (arc.ax - lm[9].x) * (canvas.width / canvas.height), dy = y - arc.ay; if (Math.hypot(dx, dy) > .04) { const a = Math.atan2(dy, -dx); let best = 0, bd = 9; MODES.forEach((_, i) => { const am = Math.PI * (.62 + i * .38) - Math.PI; const d = Math.abs(Math.atan2(Math.sin(a - am), Math.cos(a - am))); if (d < bd) { bd = d; best = i; } }); arc.sel = best; } } }
+    else if (arc) { if (now - arc.t > 250 && arc.sel >= 0) setSynthMode(MODES[arc.sel][0]); arc = null; }
     const r = rollOf(lm, "R", sh.wl); rollS = rollS === null ? r : rollS * .75 + r * .25;
-    if (synthMode === "melody") {
-      const which = pin.findIndex(Boolean);
-      if (which >= 0) { const m = leadNoteFor(y); if (lead && lead.finger !== which) leadOff(); leadOn(m, which); $("plateR").textContent = `melodía · ${noteName(m)} · ${["cuadrada", "sierra", "triángulo", "seno"][which]}`; }
-      else { leadOff(); $("plateR").textContent = `melodía · altura = nota (${noteName(leadNoteFor(y))}) · pinza = suena`; }
-      handPos.R = lm; setLadder("ladR", y, noteName(leadNoteFor(y)));
-    } else if (synthMode === "drums") {
-      pin.forEach((c, i) => { if (c && !synthState.R.pinch[i]) DRUMS[i](ctx.currentTime, .9); });
-      drumsAuto = rollS > .55 ? 2 : rollS > .3 ? 1 : 0;
-      $("plateR").textContent = `batería · pinzas: bombo caja charles tom · giro: ${["manual", "bombo+caja", "+charles"][drumsAuto]}`; handPos.R = lm; setLadder("ladR", y, ["MANUAL", "BÁSICO", "LLENO"][drumsAuto]);
-    } else if (synthMode === "bass") {
-      bassAuto = rollS > .55 ? 2 : 1; pin.forEach((c, i) => { if (c && !synthState.R.pinch[i] && !chord.open) { const root = 36 + chord.root; bassNote(root + [0, 7, 12, -5][i], ctx.currentTime, .3, 1); } });
-      $("plateR").textContent = `bajo · giro: ${bassAuto === 2 ? "raíz, quinta y octavas" : "raíces"} · pinzas: raíz quinta octava cuarta`; handPos.R = lm; setLadder("ladR", y, bassAuto === 2 ? "MOVIDO" : "RAÍCES");
-    }
-    synthState.R.pinch = pin.map(Boolean); $("hpR").hidden = true; $("ladR").hidden = false; rightVel = Math.max(.3, Math.min(1, 1.25 - y));
-  } else { handPos.R = null; leadOff(); synthState.R.pinch = [0,0,0,0]; synthState.R.fistT = 0; rollS = null; $("plateR").textContent = `fuera · modo ${synthMode === "melody" ? "melodía" : synthMode === "drums" ? "batería" : "bajo"} · puño 1 s cambia de modo`; $("ladR").hidden = true; }
+    if (!arc) {
+      if (synthMode === "melody") {
+        leadCut = rollS; if (lead) lead.fl.frequency.setTargetAtTime(500 * Math.pow(2, leadCut * 3.5), ctx.currentTime, .05);
+        const which = pin.findIndex(Boolean), m = leadNoteFor(y);
+        if (which >= 0) { if (lead && lead.finger !== which) leadOff(); leadOn(m, which); $("plateR").textContent = `melodía · ${noteName(m)} · ${VOICES[which][1]}`; }
+        else { leadOff(); $("plateR").textContent = `melodía · ${noteName(m)} · pinza para sonar`; }
+        setLadder("ladR", y, noteName(m)); synthLine = { lm, label: noteName(m) };
+        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", which === i); } const hc = $("hpCut"); if (hc) hc.style.width = Math.round(leadCut * 100) + "%";
+      } else if (synthMode === "drums") {
+        pin.forEach((c, i) => { if (c && !synthState.R.pinch[i]) DRUMS[i](ctx.currentTime, .9); });
+        drumsAuto = rollS > .5 ? 2 : rollS > .25 ? 1 : 0;
+        $("plateR").textContent = `batería · ${["manual", "bombo+caja", "+charles"][drumsAuto]}`; setLadder("ladR", y, ["MANUAL", "BÁSICO", "LLENO"][drumsAuto]); synthLine = null;
+        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); } for (let i = 0; i < 3; i++) { const el = $("oD" + i); if (el) el.classList.toggle("on", drumsAuto === i); }
+      } else {
+        bassAuto = rollS > .5 ? 2 : 1; pin.forEach((c, i) => { if (c && !synthState.R.pinch[i] && !chord.open) { const root = 36 + chord.root; bassNote(root + [0, 7, 12, -5][i], ctx.currentTime, .3, 1); } });
+        $("plateR").textContent = `bajo · ${bassAuto === 2 ? "raíz, quinta y octavas" : "raíces"}`; setLadder("ladR", y, bassAuto === 2 ? "MOVIDO" : "RAÍCES"); synthLine = null;
+        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); } for (let i = 1; i < 3; i++) { const el = $("oD" + i); if (el) el.classList.toggle("on", bassAuto === i); }
+      }
+    } else { leadOff(); $("plateR").textContent = "modo · mueve el puño y ábrelo para elegir"; synthLine = null; }
+    synthState.R.pinch = pin.map(Boolean); $("ladR").hidden = !!arc; handPos.R = lm; rightVel = Math.max(.3, Math.min(1, 1.25 - y));
+    if ($("hpR").hidden && helpOn) renderHpSynth();
+  } else { handPos.R = null; leadOff(); arc = null; synthLine = null; synthState.R.pinch = [0,0,0,0]; rollS = null; $("plateR").textContent = `fuera · modo ${({ melody: "melodía", drums: "batería", bass: "bajo" })[synthMode]} · puño = arco de modos`; $("ladR").hidden = true; $("hpR").hidden = true; }
 }
-function setSynthMode(m) { synthMode = m; $("modeSel").value = m; $("songLbl").textContent = playing ? song.title : ({ melody: "Synth · melodía", drums: "Synth · batería", bass: "Synth · bajo" }[m]); }
+let synthLine = null;
+function setSynthMode(m) { synthMode = m; $("modeSel").value = m; leadOff(); if (!$("perf").hidden) renderHpSynth(); $("songLbl").textContent = playing ? song.title : ({ melody: "Synth · melodía", drums: "Synth · batería", bass: "Synth · bajo" }[m]); }
+const TX_LINE = .62, TX_REARM = .56;
+let ttakun = false;
 function processTxala(hands, now) {
   const roles = hands.length === 2 ? [[hands[1], "L"], [hands[0], "R"]] : hands.length === 1 ? [[hands[0], hands[0].x > .5 ? "L" : "R"]] : [];
   ["L", "R"].forEach(k => { if (!roles.find(r => r[1] === k)) { txalaHands[k].y = null; txalaHands[k].armed = true; handPos[k] = null; } });
-  roles.forEach(([h, k]) => { const lm = h.lm, y = lm[9].y, st = txalaHands[k]; handPos[k] = lm;
-    if (st.y !== null) { const dt = Math.max(.008, (now - st.t) / 1000), vy = (y - st.y) / dt; st.v = st.v * .4 + vy * .6;
-      const plank = Math.min(2, Math.max(0, Math.floor((1 - lm[9].x) * 3)));
-      if (st.armed && st.v > .9) { plankHit(plank, ctx.currentTime, Math.min(1, .5 + st.v / 4)); st.armed = false; txalaCount[k]++; flashes.push({ x: lm[9].x, y, t: performance.now(), down: true }); }
-      if (st.v < .15) st.armed = true; }
-    st.y = y; st.t = now; });
-  $("plateL").textContent = handPos.L ? `makila ezkerra · ${txalaCount.L} golpes` : "fuera de cuadro"; $("plateR").textContent = handPos.R ? `makila eskuina · ${txalaCount.R} golpes` : "fuera de cuadro";
+  roles.forEach(([h, k]) => { const lm = h.lm, st = txalaHands[k]; handPos[k] = lm;
+    // la punta de la makila es el punto más bajo de la mano
+    let tip = lm[8]; lm.forEach(q => { if (q.y > tip.y) tip = q; });
+    const y = tip.y;
+    if (st.y !== null) { const dt = Math.max(.008, (now - st.t) / 1000), vy = (y - st.y) / dt; st.v = vy;
+      const plank = Math.min(2, Math.max(0, Math.floor((1 - tip.x) * 3)));
+      if (st.armed && st.y < TX_LINE && y >= TX_LINE && vy > .2) { plankHit(plank, ctx.currentTime, Math.min(1, .45 + vy / 3)); st.armed = false; txalaCount[k]++; flashes.push({ x: tip.x, y: TX_LINE, t: performance.now(), down: true }); }
+      if (y < TX_REARM) st.armed = true; }
+    st.y = y; st.t = now; st.tip = tip;
+  });
+  $("plateL").textContent = handPos.L ? `${txalaCount.L} golpes · ${txalaHands.L.armed ? "arriba" : "abajo"}` : "fuera de cuadro"; $("plateR").textContent = handPos.R ? `${txalaCount.R} golpes · ${txalaHands.R.armed ? "arriba" : "abajo"}` : "fuera de cuadro";
   $("hpL").hidden = true; $("hpR").hidden = true; $("ladL").hidden = true; $("ladR").hidden = true;
 }
 function drawTxala(W, H) {
-  const now = performance.now(); const w = W / 3;
-  for (let i = 0; i < 3; i++) { const sx = W - (i + 1) * w; const k = Math.max(0, 1 - (now - txalaFlash[i]) / 350);
-    cx.fillStyle = `rgba(233,231,226,${.04 + .25 * k})`; cx.fillRect(sx + 8, H * .62, w - 16, H * .1);
-    cx.strokeStyle = "rgba(233,231,226,.35)"; cx.lineWidth = 1; cx.strokeRect(sx + 8, H * .62, w - 16, H * .1);
-    cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.fillStyle = "rgba(233,231,226,.7)"; cx.font = "11px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText(PLANKS[i].name.toUpperCase() + " · " + PLANKS[i].f + " Hz", (i + .5) * w, H * .62 - 8); cx.restore(); }
+  const now = performance.now(); const w = W / 3, y0 = H * TX_LINE, hh = H * .09;
+  for (let i = 0; i < 3; i++) { const sx = W - (i + 1) * w; const k = Math.max(0, 1 - (now - txalaFlash[i]) / 300);
+    cx.fillStyle = `rgba(233,231,226,${.06 + .3 * k})`; cx.fillRect(sx + 10, y0, w - 20, hh);
+    cx.strokeStyle = `rgba(233,231,226,${.4 + .5 * k})`; cx.lineWidth = k > 0 ? 2 : 1; cx.beginPath(); cx.moveTo(sx + 10, y0); cx.lineTo(sx + w - 10, y0); cx.stroke();
+    cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.fillStyle = "rgba(233,231,226,.75)"; cx.font = "11px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText(PLANKS[i].name.toUpperCase(), (i + .5) * w, y0 + hh - 8); cx.fillStyle = "rgba(233,231,226,.35)"; cx.font = "9px Geist Mono, monospace"; cx.fillText(PLANKS[i].f + " HZ", (i + .5) * w, y0 + hh + 12); cx.restore(); }
+  // puntas de las makilak
+  ["L", "R"].forEach(k => { const st = txalaHands[k]; if (!st.tip || st.y === null) return; cx.fillStyle = st.armed ? "rgba(159,211,255,.9)" : "rgba(233,231,226,.5)"; cx.beginPath(); cx.arc(st.tip.x * W, st.tip.y * H, 7, 0, 7); cx.fill(); });
+  cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.fillStyle = "rgba(233,231,226,.4)"; cx.font = "10px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText("BAJA LA MANO HASTA CRUZAR LA TABLA · SUBE PARA REARMAR", W / 2, y0 - 10); cx.restore();
 }
 
 /* ================= ARRANQUE ================= */
@@ -1031,7 +1083,7 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-window.__uke = { processHands, get state() { return { live, chord, density, rightVel, playing, T, slots: slotsNow(), rollL, rollVal, rollDbg }; }, startTransport, initAudio: () => { initAudio(); }, countPlucks: 0 };
+window.__uke = { processHands, extended, get arc() { return arc; }, get synthMode() { return synthMode; }, get state() { return { live, chord, density, rightVel, playing, T, slots: slotsNow(), rollL, rollVal, rollDbg }; }, startTransport, initAudio: () => { initAudio(); }, countPlucks: 0 };
 const _pluck = pluck; pluck = (...a) => { window.__uke.countPlucks++; return _pluck(...a); };
 /* ================= EVENTOS ================= */
 let kbDown = true;
