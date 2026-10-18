@@ -920,7 +920,7 @@ function setLadder(id, y, label) { const el = $(id), m = el.querySelector(".mk")
 /* ================= COACH (tutorial guiado) ================= */
 const COACH_SETS = {
   synth: [
-    { t1: "Mano izquierda · levanta un dedo", t2: "el pad suena mientras dure la pose · bájala y se calla", fingers: POSE_FINGERS[1], test: () => live.pose === 1 && pad.notes.length > 0 },
+    { t1: "Mano izquierda · levanta dedos", t2: "cada número de dedos es un acorde · el pad suena mientras dure la pose", fingers: POSE_FINGERS[1], test: () => live.pose > 0 && pad.notes.length > 0 },
     { t1: "Sube la mano", t2: "más alta, más color: séptima, novena, trecena", fingers: POSE_FINGERS[1], test: () => live.level >= 1 },
     { t1: "Mano derecha · pinza el índice", t2: "suena la melodía · la altura elige la nota · suelta y calla", fingers: [1,0,1,1,1], test: () => !!lead },
     { t1: "Dorso a la cámara, mano cerrada", t2: "aparece el arco de modos · mueve el puño y abre la mano para elegir", fingers: [0,0,0,0,0], flip: true, test: () => !!arc },
