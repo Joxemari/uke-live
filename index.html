@@ -189,7 +189,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .plate .beats{display:flex;gap:8px;padding-bottom:2px;font-size:16px;line-height:1;color:var(--ink-38);font-variant-numeric:tabular-nums}.plate .beats i{font-style:normal;width:14px;text-align:center;transition:color .05s,transform .05s}.plate .beats i.on{color:var(--ink);transform:scale(1.35)}.plate .beats i.one{color:var(--ink-62)}.plate .beats i.one.on{color:var(--ink)}
 .plate .rule{grid-column:1/-1;height:1px;background:var(--ink-16);margin-top:8px;position:relative}
 .plate .rule i{position:absolute;left:0;top:0;height:1px;background:var(--ink);width:0;z-index:1}
-.plate .rule canvas{position:absolute;left:0;right:0;bottom:1px;width:100%;height:40px;opacity:.75;pointer-events:none}
+.plate .rule canvas{position:absolute;left:0;right:0;bottom:1px;width:100%;height:46px;opacity:.95;pointer-events:none}
 .bar{position:relative;display:flex;align-items:stretch;height:60px;border-top:1px solid var(--ink-16);padding:0 14px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
 .bar::-webkit-scrollbar{display:none}
 .bar .grp{display:flex;align-items:center;gap:18px;padding:0 26px;border-left:1px solid var(--ink-16);white-space:nowrap;flex:none}
@@ -399,7 +399,7 @@ const chordNotes = c => c.frets.map((f, i) => noteName(OPEN[i] + f)).join("  ");
 
 /* ================= AUDIO: Karplus-Strong + caja ================= */
 let ctx, master, bodyIn, cache = new Map(), perString = [null,null,null,null], analyser = null, waveBuf = null;
-function drawWave() { if (!analyser) return; const c = $("wave"), g = c.getContext("2d"); analyser.getByteTimeDomainData(waveBuf); g.clearRect(0, 0, c.width, c.height); g.strokeStyle = "rgba(233,231,226,.55)"; g.lineWidth = 1; g.beginPath(); const n = waveBuf.length; for (let i = 0; i < n; i += 2) { const x = i / n * c.width, y = c.height / 2 + (waveBuf[i] - 128) / 128 * (c.height / 2 - 2); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
+function drawWave() { if (!analyser) return; const c = $("wave"), g = c.getContext("2d"); analyser.getByteTimeDomainData(waveBuf); g.clearRect(0, 0, c.width, c.height); g.strokeStyle = "rgba(233,231,226,.85)"; g.lineWidth = 1.2; g.shadowColor = "rgba(233,231,226,.6)"; g.shadowBlur = 4; g.beginPath(); const n = waveBuf.length; for (let i = 0; i < n; i += 2) { const x = i / n * c.width, y = c.height / 2 + (waveBuf[i] - 128) / 128 * (c.height / 2 - 2); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
 function initAudio() {
   if (ctx) return;
   ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -896,21 +896,34 @@ function padNotes(pose, flipped, level) {
   return semis.map(v => root + v);
 }
 // --- PAD: voces sostenidas con filtro
-let pad = { voices: [], bus: null, filt: null, notes: [] , cutoff: 800 };
-function padInit() { if (pad.bus) return; pad.bus = ctx.createGain(); pad.bus.gain.value = .5; pad.filt = ctx.createBiquadFilter(); pad.filt.type = "lowpass"; pad.filt.frequency.value = 800; pad.filt.Q.value = 1.2;
-  const conv = ctx.createConvolver(); conv.buffer = ir(1.4); const wet = ctx.createGain(); wet.gain.value = .25;
-  pad.bus.connect(pad.filt); pad.filt.connect(master); pad.filt.connect(conv); conv.connect(wet); wet.connect(master); }
+let pad = { voices: [], bus: null, filt: null, notes: [], lfo: null };
+function padInit() {
+  if (pad.bus) return;
+  pad.bus = ctx.createGain(); pad.bus.gain.value = .55;
+  pad.filt = ctx.createBiquadFilter(); pad.filt.type = "lowpass"; pad.filt.frequency.value = 700; pad.filt.Q.value = 2.2;
+  // LFO lento sobre el filtro
+  pad.lfo = ctx.createOscillator(); pad.lfo.frequency.value = .12; const lg = ctx.createGain(); lg.gain.value = 120; pad.lfo.connect(lg); lg.connect(pad.filt.frequency); pad.lfo.start();
+  // chorus: dos copias retardadas y moduladas
+  const dry = ctx.createGain(); dry.gain.value = .7; const wetC = ctx.createGain(); wetC.gain.value = .5;
+  [[.021, .8, .003], [.029, .6, .0025]].forEach(([d, rate, depth]) => { const dl = ctx.createDelay(.1); dl.delayTime.value = d; const l = ctx.createOscillator(), lg2 = ctx.createGain(); l.frequency.value = rate; lg2.gain.value = depth; l.connect(lg2); lg2.connect(dl.delayTime); l.start(); pad.filt.connect(dl); dl.connect(wetC); });
+  const conv = ctx.createConvolver(); conv.buffer = ir(2.6); const wetR = ctx.createGain(); wetR.gain.value = .32;
+  const sum = ctx.createGain(); pad.filt.connect(dry); dry.connect(sum); wetC.connect(sum); sum.connect(master); sum.connect(conv); conv.connect(wetR); wetR.connect(master);
+  pad.bus.connect(pad.filt);
+}
 function padSet(notes) {
   padInit(); const same = notes.length === pad.notes.length && notes.every((n, i) => n === pad.notes[i]); if (same) return;
-  const t = ctx.currentTime; pad.voices.forEach(v => { v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.exponentialRampToValueAtTime(.0001, t + .35); v.o1.stop(t + .4); v.o2.stop(t + .4); });
-  pad.voices = []; pad.notes = notes.slice();
-  notes.forEach((m, i) => { const f = 440 * Math.pow(2, (m - 69) / 12); const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain();
-    o1.type = "sawtooth"; o2.type = "sawtooth"; o1.frequency.value = f; o2.frequency.value = f * 1.004; o2.detune.value = 7;
-    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.16 / Math.sqrt(notes.length), t + .25 + i * .02);
-    o1.connect(g); o2.connect(g); g.connect(pad.bus); o1.start(t); o2.start(t); pad.voices.push({ o1, o2, g }); });
+  const t = ctx.currentTime; pad.voices.forEach(v => { v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.exponentialRampToValueAtTime(.0001, t + .6); v.os.forEach(o => o.stop(t + .7)); });
+  pad.voices = []; pad.notes = notes.slice(); if (!notes.length) return;
+  const amp = .13 / Math.sqrt(notes.length);
+  notes.forEach((m, i) => { const f = 440 * Math.pow(2, (m - 69) / 12), g = ctx.createGain(), os = [];
+    [-9, 0, 9].forEach(c => { const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = c; o.connect(g); o.start(t); os.push(o); });
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(amp, t + .45 + i * .03); g.connect(pad.bus); pad.voices.push({ g, os }); });
+  // sub: la raíz una octava abajo, seno + triángulo
+  const root = notes[0] - 12, fr = 440 * Math.pow(2, (root - 69) / 12), gs = ctx.createGain(), s1 = ctx.createOscillator(), s2 = ctx.createOscillator();
+  s1.type = "sine"; s2.type = "triangle"; s1.frequency.value = fr; s2.frequency.value = fr * .5; s1.connect(gs); s2.connect(gs); gs.gain.setValueAtTime(.0001, t); gs.gain.exponentialRampToValueAtTime(.22, t + .5); gs.connect(master); s1.start(t); s2.start(t); pad.voices.push({ g: gs, os: [s1, s2] });
 }
 function padStop() { if (pad.notes.length) padSet([]); }
-function padCutoff(r) { if (!pad.filt) return; const f = 300 * Math.pow(2, r * 4.2); pad.filt.frequency.setTargetAtTime(f, ctx.currentTime, .05); }
+function padCutoff(r) { if (!pad.filt) return; const f = 260 * Math.pow(2, r * 4.4); pad.filt.frequency.setTargetAtTime(f, ctx.currentTime, .08); }
 
 // --- MELODÍA: la altura elige la nota de la escala, la pinza la hace sonar
 let lead = null;
