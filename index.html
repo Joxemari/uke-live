@@ -150,8 +150,8 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .plate .beats{display:flex;gap:8px;padding-bottom:2px;font-size:16px;line-height:1;color:var(--ink-38);font-variant-numeric:tabular-nums}.plate .beats i{font-style:normal;width:14px;text-align:center;transition:color .05s,transform .05s}.plate .beats i.on{color:var(--ink);transform:scale(1.35)}.plate .beats i.one{color:var(--ink-62)}.plate .beats i.one.on{color:var(--ink)}
 .plate .rule{grid-column:1/-1;height:1px;background:var(--ink-16);margin-top:8px;position:relative}
 .plate .rule i{position:absolute;left:0;top:0;height:1px;background:var(--ink);width:0}
-.bar{display:flex;align-items:center;gap:0;min-height:60px;border-top:1px solid var(--ink-16);padding:0 18px;overflow-x:auto;flex-wrap:nowrap}
-.bar .grp{display:flex;align-items:center;gap:12px;padding:0 14px;border-left:1px solid var(--ink-16);height:100%;white-space:nowrap}
+.bar{display:flex;align-items:center;gap:0 0;min-height:60px;border-top:1px solid var(--ink-16);padding:0 18px;flex-wrap:wrap;row-gap:0}
+.bar .grp{display:flex;align-items:center;gap:12px;padding:8px 14px;border-left:1px solid var(--ink-16);min-height:60px;white-space:nowrap}
 .bar .grp:first-child{border-left:0;padding-left:0}
 .bar .grp .no{font-size:11px;letter-spacing:.16em;color:var(--ink-38)}
 .bar .grp .no b{font-weight:400;color:var(--ink);margin-left:6px}
@@ -244,19 +244,22 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
     </div>
   </div>
   <div class="bar">
-    <div class="grp"><span class="no">01<b>Canción</b></span>
+    <div class="grp"><span class="no">01<b>Hoja</b></span>
+      <div class="fld"><span class="k">Tono</span><select id="key"></select></div>
+      <div class="fld"><span class="k">Escala</span><select id="scale"></select></div>
+      <div class="fld"><span class="k">BPM</span><span style="display:flex;gap:8px;align-items:center"><input type="range" id="tempo" min="50" max="160" value="90"><span class="num" id="tempoVal" style="color:var(--ink)">90</span></span></div>
+      <div class="fld"><span class="k">Swing</span><span style="display:flex;gap:8px;align-items:center"><input type="range" id="swing" min="50" max="75" value="50" style="width:60px"><span class="num" id="swingVal" style="color:var(--ink)">50</span></span></div>
+    </div>
+    <div class="grp"><span class="no">02<b>Acordes</b></span>
+      <div class="fld"><span class="k">Patrón</span><select id="pattern"></select></div>
+      <div class="fld"><span class="k">Manos</span><select id="hands"><option value="r">diestro</option><option value="l">zurdo</option></select></div>
+    </div>
+    <div class="grp"><span class="no">03<b>Canción</b></span>
       <div class="fld"><span class="k">Tema</span><select id="song"></select></div>
-      <div class="fld"><span class="k">BPM</span><span style="display:flex;gap:8px;align-items:center"><input type="range" id="tempo" min="60" max="140" value="90"><span class="num" id="tempoVal" style="color:var(--ink)">90</span></span></div>
       <button id="play">▶ Tocar</button>
       <label class="k" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="singChk" checked> Letra</label>
     </div>
-    <div class="mid"></div>
-    <div class="grp"><span class="no">02<b>Acordes</b></span>
-      <div class="fld"><span class="k">Tono</span><select id="key"><option>C</option><option>G</option><option>F</option><option>D</option><option>A</option></select></div>
-      <div class="fld"><span class="k">Manos</span><select id="hands"><option value="r">diestro</option><option value="l">zurdo</option></select></div>
-      <div class="fld"><span class="k">Patrón</span><select id="pattern"></select></div>
-    </div>
-    <div class="grp"><span class="no">03<b>Toma</b></span>
+    <div class="grp"><span class="no">04<b>Toma</b></span>
       <div class="fld score"><span class="k">Puntos</span><span class="v num" id="score">0</span></div>
       <div class="fld score"><span class="k">Racha</span><span class="v num" id="combo">0</span></div>
       <div class="fld score"><span class="k">Rasgueos</span><span class="v num" id="strums">0</span></div>
@@ -270,28 +273,56 @@ import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@m
 
 /* ================= TEORÍA ================= */
 const OPEN = [67, 60, 64, 69];                 // G4 C4 E4 A4 (reentrante)
-const SCALE = [0, 2, 4, 5, 7, 9, 11];
-const KEYPC = { C: 0, G: 7, F: 5, D: 2, A: 9 };
+const SCALES = {
+  major: { name: "Mayor", iv: [0,2,4,5,7,9,11] },
+  minor: { name: "Menor", iv: [0,2,3,5,7,8,10] },
+  dorian: { name: "Dórica", iv: [0,2,3,5,7,9,10] },
+  mixolydian: { name: "Mixolidia", iv: [0,2,4,5,7,9,10] },
+  lydian: { name: "Lidia", iv: [0,2,4,6,7,9,11] },
+  phrygian: { name: "Frigia", iv: [0,1,3,5,7,8,10] },
+  melminor: { name: "Men. melódica", iv: [0,2,3,5,7,9,11] },
+  harmminor: { name: "Men. armónica", iv: [0,2,3,5,7,8,11] },
+};
+const KEYS = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
 const SHARP = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"], FLAT = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
-const Q = { maj: [0,4,7], min: [0,3,7], "7": [0,4,7,10], m7: [0,3,7,10] };
-const DEG = [null,{d:1,q:"maj",r:"I"},{d:2,q:"min",r:"ii"},{d:3,q:"min",r:"iii"},{d:4,q:"maj",r:"IV"},{d:5,q:"maj",r:"V"},{d:6,q:"min",r:"vi"},{d:5,q:"7",r:"V7"}];
+let key = 0, scaleKey = "major";
+const SCALE = () => SCALES[scaleKey].iv;
+const REL_MAJOR = { major: 0, lydian: 7, mixolydian: 5, dorian: 10, phrygian: 8, minor: 3, melminor: 3, harmminor: 3 };
+const names = () => { const rel = (key + REL_MAJOR[scaleKey]) % 12; return [5,10,3,8,1,6].includes(rel) ? FLAT : SHARP; };
+const ROM = ["I","II","III","IV","V","VI","VII"];
 const POSE_HELP = [null,"un dedo · la primera","dos dedos · la segunda","tres dedos · la tercera","cuatro dedos · la cuarta","mano abierta · la quinta","cuernos · la sexta","cuernos y pulgar · la séptima"];
 const POSE_SHORT = [null,"1 dedo","2 dedos","3 dedos","4 dedos","abierta","cuernos","cuernos+pulgar"];
 const POSE_FINGERS = [null,[0,1,0,0,0],[0,1,1,0,0],[0,1,1,1,0],[0,1,1,1,1],[1,1,1,1,1],[0,1,0,0,1],[1,1,0,0,1]];
-let key = "C";
-const names = () => key === "F" ? FLAT : SHARP;
 const LEVEL_NAME = ["triada", "séptima", "agudo", "octava"];
-function chordFrom(pose, flipped = false, level = 0) {
+// acorde diatónico del grado d (1..7) de la escala actual, por terceras apiladas
+function diatonic(d) {
+  const sc = SCALE(), at = i => sc[(d - 1 + i) % 7] + 12 * Math.floor((d - 1 + i) / 7);
+  const r = at(0), th = (at(2) - r) % 12, fi = (at(4) - r) % 12, se = (at(6) - r) % 12;
+  return { root: (key + r) % 12, th, fi, se };
+}
+function chordFrom(pose, flipped = false, level = 0, forceSeventh = false) {
   if (!pose) return { name: "—", root: null, minor: false, frets: [0,0,0,0], open: true, roman: "", level };
-  const g = DEG[pose], root = (KEYPC[key] + SCALE[g.d - 1]) % 12;
-  let q = g.q;
-  if (flipped) q = { maj: "min", min: "maj", "7": "m7", m7: "7" }[q];
-  if (level >= 1 && q === "maj") q = "7"; if (level >= 1 && q === "min") q = "m7";
-  const pcs = Q[q].map(i => (root + i) % 12);
+  let { root, th, fi, se } = diatonic(pose);
+  if (flipped) { if (th === 4) th = 3; else if (th === 3) th = 4; if (fi === 6 || fi === 8) fi = 7; }
+  const qual = th === 4 && fi === 8 ? "aug" : th === 4 ? "maj" : fi === 6 ? "dim" : "min";
+  const withSeventh = level >= 1 || forceSeventh;
+  let pcs = [0, th, fi]; let suffix = { maj: "", min: "m", dim: "dim", aug: "aug" }[qual];
+  if (withSeventh) {
+    if (qual === "dim" && se === 10) { pcs.push(10); suffix = "m7b5"; }
+    else if (qual === "dim") { pcs.push(9); suffix = "dim7"; }
+    else if (qual === "maj" && se === 11) { pcs.push(11); suffix = "maj7"; }
+    else if (qual === "maj") { pcs.push(10); suffix = "7"; }
+    else if (qual === "min" && se === 11) { pcs.push(11); suffix = "m(maj7)"; }
+    else if (qual === "min") { pcs.push(10); suffix = "m7"; }
+    else { pcs.push(se === 11 ? 11 : 10); suffix = "aug7"; }
+  }
+  pcs = pcs.map(i => (root + i) % 12);
   const lo = level === 2 ? 5 : 0;
   let frets = OPEN.map(o => { for (let f = lo; f <= lo + 12; f++) if (pcs.includes((o + f) % 12)) return f; return lo; });
   if (level === 3) frets = frets.map(f => f + 12);
-  return { name: names()[root] + { maj: "", min: "m", "7": "7", m7: "m7" }[q], root, minor: q === "min" || q === "m7", frets, open: false, roman: g.r, level };
+  const rn = (qual === "maj" || qual === "aug") ? ROM[pose - 1] : ROM[pose - 1].toLowerCase();
+  const roman = rn + (qual === "dim" ? "°" : qual === "aug" ? "+" : "") + (withSeventh ? "⁷" : "");
+  return { name: names()[root] + suffix, root, minor: qual === "min" || qual === "dim", frets, open: false, roman, level };
 }
 const noteName = m => names()[m % 12] + (Math.floor(m / 12) - 1);
 const chordNotes = c => c.frets.map((f, i) => noteName(OPEN[i] + f)).join("  ");
@@ -353,7 +384,7 @@ const SONGS = [
   { title: "When the Saints", key: "C", bpm: 120, bar: 4, cells: [["I",4,"Oh when the saints"],["I",4,""],["I",4,"go marching in"],["I",4,""],["I",4,"Oh when the saints go"],["I",4,"marching in"],["V7",4,""],["V7",4,""],["I",4,"Oh Lord I want to"],["I",4,"be in that number"],["IV",4,""],["IV",4,""],["I",4,"when the saints go"],["V7",4,"marching"],["I",4,"in"],["I",4,""]] },
   { title: "Amazing Grace", key: "C", bpm: 80, bar: 3, cells: [["I",3,"Amazing"],["I",3,"grace how"],["IV",3,"sweet the"],["I",3,"sound"],["I",3,"that saved a"],["I",3,"wretch like"],["V7",3,"me"],["V7",3,""],["I",3,"I once was"],["I",3,"lost but"],["IV",3,"now am"],["I",3,"found"],["I",3,"was blind but"],["V7",3,"now I"],["I",3,"see"],["I",3,""]] },
 ];
-const ROMAN = { I: 1, ii: 2, iii: 3, IV: 4, V: 5, vi: 6, V7: 7 };
+const ROMAN = { I: [1], ii: [2], iii: [3], IV: [4], V: [5], vi: [6], V7: [5, true], vii: [7] };
 
 /* ================= UI helpers ================= */
 const $ = id => document.getElementById(id);
@@ -537,7 +568,7 @@ const PATTERNS = {
 };
 let patKey = "isla";
 const pat = () => PATTERNS[patKey];
-const T = { bpm: 90, slot: 0, next: 0, timer: null, nslots: 8, bar: 4 };
+const T = { bpm: 90, slot: 0, next: 0, timer: null, nslots: 8, bar: 4, swing: .5, beatT: 0 };
 let rightVel = .65;   // la altura de la mano derecha la modula
 let density = 2, rollS = null;      // 0 escaso · 1 negras · 2 patrón · 3 corcheas  (giro de muñeca)
 const DENS_NAME = ["escaso", "negras", "patrón", "corcheas"];
@@ -548,11 +579,13 @@ function slotsNow() { const base = pat().slots, n = base.length; if (patKey === 
 function glyph(c) { return c === "D" ? "↓" : c === "U" ? "↑" : c === "x" ? "×" : "·"; }
 function setBeats() { const sl = slotsNow(); T.nslots = sl.length; T.bar = pat().bar; $("beats").innerHTML = [...sl].map((c, i) => `<i class="${i % 2 === 0 && i === 0 ? "one" : ""}">${glyph(c)}</i>`).join(""); }
 function startTransport() {
-  if (T.timer) return; T.slot = -1; T.next = ctx.currentTime + .1;
+  if (T.timer) return; T.slot = -1; T.beatT = ctx.currentTime + .1; T.next = T.beatT;
   T.timer = setInterval(() => {
-    const spb = 60 / T.bpm, sps = spb / 2;
+    const spb = 60 / T.bpm;
     while (T.next < ctx.currentTime + .12) {
       const when = T.next, slot = (T.slot + 1) % T.nslots; T.slot = slot;
+      // siguiente slot: las corcheas a contratiempo se retrasan con el swing
+      if (slot % 2 === 0) { T.beatT = when; T.next = when + spb * T.swing; } else T.next = T.beatT + spb;
       const c = slotsNow()[slot];
       // metrónomo en negras
       if (metroOn && slot % 2 === 0 && (!playing || true)) click(slot === 0, when);
@@ -566,7 +599,6 @@ function startTransport() {
       }
       setTimeout(() => onSlot(slot), Math.max(0, (when - ctx.currentTime) * 1000));
       if (playing && slot % 2 === 0) { const bi = songBeat + 1; songBeat = bi; if (bi >= totalBeats) { setTimeout(finish, Math.max(0, (when - ctx.currentTime) * 1000)); } else setTimeout(() => onBeat(bi), Math.max(0, (when - ctx.currentTime) * 1000)); }
-      T.next += sps;
     }
   }, 25);
 }
@@ -574,13 +606,13 @@ function strumAt(frets, down, vel, when) { const gap = .03 - .02 * vel; (down ? 
 let barCount = 0;
 function onSlot(slot) { const d = $("beats").children; for (let i = 0; i < d.length; i++) d[i].classList.toggle("on", i === slot); if (slot === 0) barCount++;
   if (slot % 2 === 0) { const sec = Math.floor((performance.now() - t0) / 1000), mm = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0");
-    $("strip2").textContent = `${mm} · compás ${barCount} · ${Math.floor(slot / 2) + 1}/${T.bar} · ${pat().name.split(" ·")[0]} · ${T.bpm} bpm${playing ? "" : " · libre"}`; } }
+    $("strip2").textContent = `${KEYS[key]} ${SCALES[scaleKey].name.toLowerCase()} · ${mm} · compás ${barCount} · ${Math.floor(slot / 2) + 1}/${T.bar} · ${pat().name.split(" ·")[0]} · ${T.bpm} bpm${playing ? "" : " · libre"}`; } }
 function setPattern(k) { patKey = k; $("pattern").value = k; setBeats(); T.slot = -1; }
 
 /* ================= CANCIÓN ================= */
 let song = null, tl = [], playing = false, songBeat = -1, cellIdx = -1, hits = 0, total = 0, cellOk = [], metroOn = true, totalBeats = 0;
 let stats = { score: 0, combo: 0, strums: 0 };
-const target = c => chordFrom(ROMAN[c.roman]);
+const target = c => chordFrom(ROMAN[c.roman][0], false, 0, !!ROMAN[c.roman][1]);
 const matches = t => !chord.open && !t.open && chord.root === t.root && chord.minor === t.minor;
 function buildTl(s) { tl = []; let b = 0; s.cells.forEach((c, i) => { tl.push({ i, roman: c[0], beats: c[1], lyric: c[2], start: b }); b += c[1]; }); return b; }
 function renderSing() {
@@ -594,7 +626,7 @@ function updateNextMatch() { if (playing && cellIdx >= 0) $("nextName").classLis
 function updateScore() { $("score").textContent = stats.score; $("combo").textContent = stats.combo; $("strums").textContent = stats.strums; }
 function startSong() {
   if (ctx.state === "suspended") ctx.resume();
-  song = SONGS[$("song").value]; key = song.key; $("key").value = key; chord = chordFrom(live.pose, live.flip, live.level); updateChordUI();
+  song = SONGS[$("song").value]; key = KEYS.indexOf(song.key); scaleKey = "major"; $("key").value = key; $("scale").value = "major"; chord = chordFrom(live.pose, live.flip, live.level); updateChordUI(); renderHpL();
   if (song.bar === 3 && pat().bar !== 3) setPattern("vals"); else if (song.bar === 4 && pat().bar !== 4) setPattern("isla");
   totalBeats = buildTl(song); cellOk = []; hits = 0; total = 0; stats = { score: 0, combo: 0, strums: 0 }; updateScore();
   T.bpm = +$("tempo").value; songBeat = -song.bar - 1; cellIdx = -1; T.slot = -1; playing = true;
@@ -661,7 +693,12 @@ window.addEventListener("keydown", e => {
 });
 $("start").onclick = start;
 $("exit").onclick = () => { location.reload(); };
-$("key").onchange = e => { key = e.target.value; chord = chordFrom(live.pose, live.flip, live.level); updateChordUI(); };
+$("key").innerHTML = KEYS.map((k, i) => `<option value="${i}">${k}</option>`).join("");
+$("scale").innerHTML = Object.entries(SCALES).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+const retheory = () => { chord = chordFrom(live.pose, live.flip, live.level); updateChordUI(); renderHpL(); renderLesson(); };
+$("key").onchange = e => { key = +e.target.value; retheory(); };
+$("scale").onchange = e => { scaleKey = e.target.value; retheory(); };
+$("swing").oninput = e => { $("swingVal").textContent = e.target.value; T.swing = e.target.value / 100; };
 $("hands").onchange = e => swapped = e.target.value === "l";
 $("metro").onclick = e => { metroOn = !metroOn; e.target.textContent = "Clic · " + (metroOn ? "on" : "off"); e.target.setAttribute("aria-pressed", metroOn); };
 $("tempo").oninput = e => { $("tempoVal").textContent = e.target.value; T.bpm = +e.target.value; };
