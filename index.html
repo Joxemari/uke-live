@@ -155,6 +155,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .hp td:last-child{border-right:1px solid rgba(233,231,226,.05);color:var(--ink-92)}
 .hp tr.on td{background:rgba(233,231,226,.1);color:var(--ink);border-color:var(--ink-62)}
 .hp tr.on td:first-child{color:var(--ink)}
+.hp tr.tgt td{border-color:var(--ok)}.hp tr.tgt td:first-child{color:var(--ok)}
 .hp .sec .k2{display:block;color:var(--ink-38);font-size:9px;letter-spacing:.18em;margin-bottom:5px;white-space:nowrap}
 .hp .opts{display:flex;gap:4px;flex-wrap:wrap}.hp.r .opts{justify-content:flex-end}
 .hp .opt{border:1px solid rgba(233,231,226,.12);background:rgba(0,0,0,.28);padding:3px 8px;color:var(--ink-38);font-size:10px;letter-spacing:.1em;text-transform:none}
@@ -566,7 +567,7 @@ function processHands(res, now) {
     const hb = Math.round(rightVel * 5), bars = "▮".repeat(hb) + "▯".repeat(5 - hb);
     const hit = now - (ss.flashT || 0) < 220;
     $("plateR").innerHTML = hit ? `<span style="color:var(--ink)">${ss.flashDir > 0 ? "↓" : "↑"} golpe</span>` : `tú rasgueas · fuerza <span class="num">${bars}</span>${fist ? " · puño apaga" : ""}`;
-    handPos.R = lm; renderHpR(fist); $("hpR").hidden = !helpOn; $("ladR").hidden = false; setLadder("ladR", y, DENS_NAME[density].toUpperCase() + " · " + Math.round(rightVel * 100));
+    handPos.R = lm; renderHpR(fist); $("hpR").hidden = !helpOn || (playing && $("singChk").checked); $("ladR").hidden = false; setLadder("ladR", y, DENS_NAME[density].toUpperCase() + " · " + Math.round(rightVel * 100));
   } else { handPos.R = null; $("hpR").hidden = true; $("ladR").hidden = true; ss.y = null; ss.v = undefined; ss.armed = true; rightVel = .65; rollS = null; $("plateR").textContent = "fuera · el patrón toca por ti"; renderHpR(false); }
 }
 let flashes = [];
@@ -612,7 +613,8 @@ function draw(res) {
 /* ================= PANELES DE AYUDA (HUD) ================= */
 let hpLastVel = -1, hpLastDens = -1, hpPinchT = [0,0,0,0];
 function renderHpL() {
-  $("hpTable").innerHTML = `<tr><th>Deg</th><th>Pose</th><th>Acorde</th></tr>` + [1,2,3,4,5,6,7].map(p => { const c = chordFrom(p, live.flip, live.level); return `<tr class="${live.pose === p ? "on" : ""}"><td>0${p}</td><td>${fingerGlyph(POSE_FINGERS[p])}</td><td>${c.roman} ${c.name}</td></tr>`; }).join("");
+  const tgt = playing && cellIdx >= 0 ? ROMAN[tl[cellIdx].roman][0] : 0, nxt = playing && cellIdx >= 0 && tl[cellIdx + 1] ? ROMAN[tl[cellIdx + 1].roman][0] : 0;
+  $("hpTable").innerHTML = `<tr><th>Deg</th><th>Pose</th><th>Acorde</th></tr>` + [1,2,3,4,5,6,7].map(p => { const c = chordFrom(p, live.flip, live.level); const mark = p === tgt ? "▶" : p === nxt ? "›" : "0"; return `<tr class="${live.pose === p ? "on" : ""} ${p === tgt ? "tgt" : ""}"><td>${mark}${p}</td><td>${fingerGlyph(POSE_FINGERS[p])}</td><td>${c.roman} ${c.name}</td></tr>`; }).join("");
   $("oPalm").classList.toggle("on", !live.flip); $("oBack").classList.toggle("on", live.flip);
   for (let i = 0; i < 4; i++) $("oL" + i).classList.toggle("on", live.level === i);
   $("hpLst").textContent = live.pose ? (live.flip ? "dorso" : "palma") + " · " + LEVEL_NAME[live.level] : "sin pose";
@@ -705,7 +707,7 @@ function strumAt(frets, down, vel, when) { const gap = .03 - .02 * vel; (down ? 
 let barCount = 0;
 function onSlot(slot) { const d = $("beats").children; for (let i = 0; i < d.length; i++) d[i].classList.toggle("on", i === slot); if (slot === 0) barCount++;
   if (slot % 2 === 0) { const sec = Math.floor((performance.now() - t0) / 1000), mm = String(Math.floor(sec / 60)).padStart(2, "0") + ":" + String(sec % 60).padStart(2, "0");
-    $("strip2").textContent = `compás ${barCount} · ${Math.floor(slot / 2) + 1}/${T.bar} · ${playing ? "canción" : "libre"} · ${mm}`;
+    $("strip2").textContent = `compás ${barCount} · pulso ${Math.floor(slot / 2) + 1} de ${T.bar} · ${playing ? "canción" : "libre"} · ${mm}`;
     $("trInfo").textContent = `${KEYS[key]} ${SCALES[scaleKey].name} · ${T.bpm} bpm · swing ${Math.round(T.swing * 100)} · ${pat().name.split(" ·")[0]}`; } }
 function setPattern(k) { patKey = k; $("pattern").value = k; setBeats(); T.slot = -1; }
 
@@ -730,7 +732,7 @@ function startSong() {
   if (song.bar === 3 && pat().bar !== 3) setPattern("vals"); else if (song.bar === 4 && pat().bar !== 4) setPattern("isla");
   totalBeats = buildTl(song); cellOk = []; hits = 0; total = 0; stats = { score: 0, combo: 0, strums: 0 }; updateScore();
   T.bpm = +$("tempo").value; songBeat = -song.bar - 1; cellIdx = -1; T.slot = -1; playing = true;
-  $("songLbl").textContent = song.title; $("nextbox").hidden = false; $("play").textContent = "■ Parar"; $("summary").hidden = true; closeCoach(); if (helpOn) setHelp(false); renderSing();
+  $("songLbl").textContent = song.title; $("nextbox").hidden = false; $("play").textContent = "■ Parar"; $("summary").hidden = true; closeCoach(); renderSing();
 }
 function onBeat(bi) {
   $("prog").style.width = Math.max(0, 100 * bi / totalBeats) + "%";
@@ -742,7 +744,7 @@ function onBeat(bi) {
     const tn = target(cur), tx = nx ? target(nx) : null, pn = ROMAN[cur.roman][0], px = nx ? ROMAN[nx.roman][0] : 0;
     const hint = r => POSE_SHORT[ROMAN[r][0]] + (ROMAN[r][2] ? " · dorso" : "");
     $("nextName").innerHTML = `${tn.name} <small>${hint(cur.roman)}</small>` + (tx ? ` <span class="arr">→</span> ${tx.name} <small>${hint(nx.roman)}</small>` : "");
-    $("nextGlyph").innerHTML = (tx ? fingerGlyph(POSE_FINGERS[px]) : "");
+    $("nextGlyph").innerHTML = (tx ? fingerGlyph(POSE_FINGERS[px]) : ""); renderHpL();
     $("lyr").innerHTML = `${cur.lyric || "&nbsp;"}<span class="nx">${nx && nx.lyric ? nx.lyric : ""}</span>`;
     renderSing();
   }
@@ -758,7 +760,7 @@ function finish() {
   $("sumScore").textContent = stats.score; $("sumText").textContent = `Acorde correcto en el ${pct}% de los pulsos · ${stats.strums} rasgueos a tiempo. ${pct >= 85 ? "Eso ya es tocar." : pct >= 60 ? "Va saliendo: prepara el acorde siguiente un pulso antes." : "Baja el tempo y repite; el cambio se prepara antes de que llegue."}`;
   $("strip").innerHTML = cellOk.map(v => `<i class="${v === true ? "ok" : v === false ? "miss" : ""}"></i>`).join(""); $("summary").hidden = false;
 }
-function stopSong() { playing = false; $("sing").hidden = true; cellIdx = -1; $("nextbox").hidden = true; $("songLbl").textContent = "Modo libre"; $("play").textContent = "▶ Tocar"; $("lyr").textContent = ""; $("prog").style.width = "0"; }
+function stopSong() { playing = false; setTimeout(renderHpL, 0); $("sing").hidden = true; cellIdx = -1; $("nextbox").hidden = true; $("songLbl").textContent = "Modo libre"; $("play").textContent = "▶ Tocar"; $("lyr").textContent = ""; $("prog").style.width = "0"; }
 
 /* ================= ARRANQUE ================= */
 let landmarker = null, lastVT = -1, t0 = 0;
