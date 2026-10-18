@@ -88,6 +88,10 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .cam canvas{pointer-events:none}
 .ovl{position:absolute;inset:0;pointer-events:none}
+.ovl::before,.ovl::after{content:"";position:absolute;top:0;bottom:0;width:34%;pointer-events:none}
+.ovl::before{left:0;background:linear-gradient(90deg,rgba(6,7,10,.72),rgba(6,7,10,.45) 55%,transparent)}
+.ovl::after{right:0;background:linear-gradient(270deg,rgba(6,7,10,.72),rgba(6,7,10,.45) 55%,transparent)}
+.cam::after{content:"";position:absolute;left:0;right:0;top:0;height:120px;background:linear-gradient(180deg,rgba(6,7,10,.7),transparent);pointer-events:none}
 .ovl>*{pointer-events:auto}
 .tl{position:absolute;top:12px;left:16px;padding:6px 10px;min-width:150px;border:1px solid var(--ink-16);background:rgba(6,7,10,.6)}
 .tl .k{display:block;margin-bottom:4px}
@@ -102,11 +106,11 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .coach.done{border-color:var(--ok)}
 .brand{position:absolute;top:62px;left:16px;font-size:11px;letter-spacing:.22em;color:var(--ink-16)}
 .center{position:absolute;top:86px;left:50%;transform:translateX(-50%);text-align:center;display:grid;gap:4px;justify-items:center;pointer-events:none;width:min(520px,60%)}
-.center .strip{font-size:9px}
+.center .strip{font-size:9px;color:var(--ink-62)}
 .chordbig{color:var(--ink);font-size:clamp(36px,5vw,60px);line-height:1;letter-spacing:.04em;text-shadow:0 0 18px rgba(0,0,0,.8);position:relative;padding:0 26px}
 .chordbig::before,.chordbig::after{content:"";position:absolute;top:50%;width:16px;height:1px;background:var(--ink-38)}
 .chordbig::before{left:0}.chordbig::after{right:0}
-.notes{font-size:12px;letter-spacing:.18em;color:var(--ink-62);text-shadow:0 0 12px #000}
+.notes{font-size:12px;letter-spacing:.18em;color:var(--ink-92);text-shadow:0 0 12px #000}
 .sub{font-size:9px}
 .nextbox{margin-top:10px;display:grid;justify-items:center;gap:2px}
 .nextbox .v{font-size:clamp(22px,3vw,34px);color:var(--ink-92);line-height:1.05;letter-spacing:.04em;text-shadow:0 0 20px #000}
@@ -128,22 +132,22 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .ladder-v.r .t{left:auto;right:8px;transform:rotate(-90deg);transform-origin:right top}
 .ladder-v i{position:absolute;left:-3px;width:7px;height:1px;background:var(--ink-38)}
 .ladder-v .mk{position:absolute;left:-4px;width:9px;height:9px;border:1px solid var(--ink);background:var(--bg);transform:translateY(-50%);transition:top .08s}
-.ladder-v .mk span{position:absolute;left:16px;top:-2px;font-size:10px;letter-spacing:.14em;color:var(--ink);white-space:nowrap;text-shadow:0 0 6px #000}
+.ladder-v .mk span{position:absolute;left:16px;top:-2px;font-size:10px;letter-spacing:.14em;color:var(--ink);background:rgba(6,7,10,.6);padding:1px 4px;white-space:nowrap;text-shadow:0 0 6px #000}
 .ladder-v.r .mk{left:auto;right:-4px}.ladder-v.r .mk span{left:auto;right:16px}
 .hp{position:absolute;top:96px;width:220px;background:transparent;padding:0 0 0 22px;text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.8);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-38);display:grid;gap:10px;max-height:calc(100% - 230px);overflow:hidden;transition:opacity .3s}
 .hp.l{left:48px;border-left:0;padding-left:0}.hp.r{right:48px;text-align:right;padding:0;border-right:0}
-.hp .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;color:var(--ink-92);font-size:12px;white-space:nowrap}
-.hp.r .h{flex-direction:row-reverse}.hp .h>span{flex:none}.hp .h small{flex:1;overflow:hidden;text-overflow:ellipsis}.hp.r .h small{text-align:right}
+.hp .h{display:grid;gap:2px;color:var(--ink-92);font-size:12px;white-space:nowrap}.hp .h small{display:block}.hp .h .x{justify-self:start}.hp.r .h .x{justify-self:end}
+
 .hp .h small{font-size:9px;color:var(--ink-38)}
 .hp .x{border:0;padding:0;font-size:9px;color:var(--ink-38);text-decoration:underline;text-underline-offset:2px;letter-spacing:.14em}
 .hp table{border-collapse:collapse;width:100%}
 .hp th{font-weight:400;text-align:left;padding:0 4px 4px;font-size:9px;color:var(--ink-38)}
 .hp th:last-child,.hp td:last-child{text-align:right}
-.hp td{padding:3px 4px;color:var(--ink-38);font-size:10px;letter-spacing:.06em;text-transform:none;white-space:nowrap}
+.hp td{padding:3px 4px;color:var(--ink-62);font-size:11px;letter-spacing:.06em;text-transform:none;white-space:nowrap}
 .hp tr.on td{color:var(--ink)}.hp tr.on{outline:1px solid var(--ink-38);outline-offset:-1px}
-.hp .sec .k2{display:block;color:var(--ink-38);font-size:9px;margin-bottom:4px}
+.hp .sec .k2{display:block;color:var(--ink-38);font-size:9px;margin-bottom:4px;white-space:nowrap}
 .hp .opts{display:flex;gap:4px;flex-wrap:wrap}.hp .opts.vert{flex-direction:column;align-items:flex-start;gap:3px;border-left:1px solid var(--ink-16);padding-left:8px}.hp.r .opts{justify-content:flex-end}
-.hp .opt{border:1px solid transparent;padding:2px 6px;color:var(--ink-38);font-size:9px;letter-spacing:.12em}
+.hp .opt{border:1px solid var(--ink-16);padding:2px 6px;color:var(--ink-62);font-size:9px;letter-spacing:.12em}
 .hp .opt.on{border-color:var(--ink-38);color:var(--ink)}
 .hp .ladder{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
 .hp .ladder .lv{display:flex;justify-content:flex-end;gap:2px}.hp .ladder .lv i{width:3px;height:9px;background:var(--ink-16)}.hp .ladder .lv i.on{background:var(--ink)}
@@ -153,7 +157,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 @media (max-width:900px){.hp{display:none}}
 .plate{position:absolute;left:0;right:0;bottom:0;height:72px;background:linear-gradient(180deg,transparent,rgba(6,7,10,.6) 60%);text-shadow:0 0 6px #000;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;padding:0 46px 12px}
 .plate .side{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-92)}
-.plate .side small{display:block;font-size:10px;color:var(--ink-38);letter-spacing:.14em}
+.plate .side small{display:block;font-size:10px;color:var(--ink-62);letter-spacing:.14em}
 .plate .side.r{text-align:right}
 .plate .beats{display:flex;gap:8px;padding-bottom:2px;font-size:16px;line-height:1;color:var(--ink-38);font-variant-numeric:tabular-nums}.plate .beats i{font-style:normal;width:14px;text-align:center;transition:color .05s,transform .05s}.plate .beats i.on{color:var(--ink);transform:scale(1.35)}.plate .beats i.one{color:var(--ink-62)}.plate .beats i.one.on{color:var(--ink)}
 .plate .rule{grid-column:1/-1;height:1px;background:var(--ink-16);margin-top:8px;position:relative}
@@ -459,7 +463,7 @@ function extended(lm, role = "L") {
 function palmSign(lm) { const a = { x: lm[5].x - lm[0].x, y: lm[5].y - lm[0].y }, b = { x: lm[17].x - lm[0].x, y: lm[17].y - lm[0].y }; return a.x * b.y - a.y * b.x; }
 function poseOf(e) { const [t, i, m, r, p] = e, n = i + m + r + p; if (i && p && !m && !r) return t ? 7 : 6; if (n === 4 && t) return 5; if (n >= 1) return n; return 0; }
 
-let swapped = false, lastPose = { p: 0, flip: false, n: 0 }, live = { pose: 0, flip: false, level: 0 }, chord = chordFrom(0);
+let swapped = false, lastPose = { p: 0, flip: false, n: 0 }, poseHist = [], live = { pose: 0, flip: false, level: 0 }, chord = chordFrom(0);
 let ss = { y: null, t: 0, lastDir: 0, lastT: 0, pinch: [0,0,0,0], armed: true, v: undefined, meter: 0 };
 const ON = .45, OFF = .18;   // umbrales de velocidad vertical (fracción de cuadro / s)
 let seen = { chord: false, strum: false };
@@ -471,11 +475,13 @@ function processHands(res, now) {
   if (ch) {
     const e = extended(ch.lm, "L"), p = poseOf(e); let flip = palmSign(ch.lm) < 0; if (swapped) flip = !flip;
     const hy = ch.lm[9].y, lvl = hy > .62 ? 0 : hy > .44 ? 1 : hy > .27 ? 2 : 3;
-    if (p === lastPose.p && flip === lastPose.flip) lastPose.n++; else lastPose = { p, flip, n: 0 };
-    if (lastPose.n >= 3 && (p !== live.pose || flip !== live.flip || lvl !== live.level)) { live = { pose: p, flip, level: lvl }; chord = chordFrom(p, flip, lvl); if (p) seen.chord = true; updateChordUI(); coachCheck(); }
+    poseHist.push(p * 2 + (flip ? 1 : 0)); if (poseHist.length > 7) poseHist.shift();
+    const cnt = {}; let best = null, bestN = 0; poseHist.forEach(v => { cnt[v] = (cnt[v] || 0) + 1; if (cnt[v] > bestN) { bestN = cnt[v]; best = v; } });
+    if (bestN >= 4) { const vp = best >> 1, vf = !!(best & 1);
+      if (vp !== live.pose || vf !== live.flip || lvl !== live.level) { live = { pose: vp, flip: vf, level: lvl }; chord = chordFrom(vp, vf, lvl); if (vp) seen.chord = true; updateChordUI(); coachCheck(); } }
     $("plateL").textContent = p ? POSE_SHORT[p] + (flip ? " · dorso" : " · palma") + " · " + LEVEL_NAME[lvl] : "sin pose · al aire";
     $("hpL").hidden = !helpOn; $("ladL").hidden = false; setLadder("ladL", hy, LEVEL_NAME[lvl].toUpperCase());
-  } else { $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } }
+  } else { poseHist = []; $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } }
   if (sh) {
     const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), fist = e.reduce((a, b) => a + b, 0) === 0;
     if (ss.y !== null) {
