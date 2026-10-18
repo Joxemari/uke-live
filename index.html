@@ -6,6 +6,7 @@
 <title>uke.live - play uke with your hands</title>
 <meta name="description" content="Un ukelele que se toca con las manos delante de la webcam. Mano izquierda cuenta el acorde, mano derecha rasguea. Canciones guiadas. Nada sale de tu dispositivo.">
 <meta name="theme-color" content="#06070a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2306070a'/%3E%3Cpath d='M16 6v20M6 16h20' stroke='%23e9e7e2' stroke-width='1.2'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='%239fd3ff' stroke-width='1.4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500&display=swap">
@@ -127,6 +128,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .coach .skip{border:0;padding:0;color:var(--ink-62);text-decoration:underline;text-underline-offset:3px}
 .coach .steps{display:flex;gap:3px;margin-top:5px}.coach .steps i{width:4px;height:4px;background:var(--ink-16)}.coach .steps i.on{background:var(--ink)}
 .coach.done{border-color:var(--ok)}
+.watch{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);background:rgba(6,7,10,.92);border:1px solid var(--ink-38);padding:14px 18px;display:flex;gap:14px;align-items:center;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-92);z-index:3}
 .brand{position:absolute;top:22px;left:190px;font-size:11px;letter-spacing:.22em;color:var(--ink-38)}
 .center{position:absolute;top:86px;left:50%;transform:translateX(-50%);text-align:center;display:grid;gap:4px;justify-items:center;pointer-events:none;width:min(520px,60%)}
 .center .strip{font-size:9px;color:var(--ink-62)}
@@ -321,6 +323,7 @@ body[data-mirror="0"] .cam video,body[data-mirror="0"] .cam canvas{transform:non
       </aside>
       <div class="tr"><span class="k" id="trInfo"></span><button id="setBtn">↗ Ajustes</button><button id="recBtn">● Rec</button><select id="recFmt" title="formato de la toma"><option value="h">horizontal</option><option value="v">vertical</option></select><button id="exit">▲ Salir</button><button id="help" aria-pressed="true">Ayuda · on</button><button id="metro" aria-pressed="false">Metrónomo · off</button><div class="modeBig" id="modeBig" hidden>R · <b id="modeBigName">melodía</b></div></div>
       <div class="brand">uke.live</div>
+      <div class="watch" id="watch" hidden><span>La cámara no manda imagen</span><button id="watchBtn">Reiniciar cámara</button></div>
       <div class="center">
         <div class="strip k" id="strip2"></div>
         <div class="chordbig num" id="chordName">—</div>
@@ -1650,7 +1653,11 @@ async function start() {
       : e.name === "NotFoundError" ? "No encuentro ninguna cámara." : !navigator.mediaDevices ? "Este contexto no permite cámara: abre la página en una pestaña de Chrome." : /fetch|network|wasm|load/i.test(String(e.message)) ? "No he podido descargar el detector de manos (jsDelivr / storage.googleapis.com). ¿Red o cortafuegos? · " + e.message : (e.message || String(e));
   }
 }
+let lastFrameAt = 0;
+async function restartCamera() { try { if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop()); const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); video.srcObject = stream; await video.play(); lastFrameAt = performance.now(); $("watch").hidden = true; } catch (e) { $("watch").querySelector("span").textContent = "No he podido reabrir la cámara: " + (e.message || e.name); } }
+$("watchBtn").onclick = restartCamera;
 function loop() {
+  { const n = performance.now(); if (video.currentTime !== lastVT) { lastFrameAt = n; if (!$("watch").hidden) $("watch").hidden = true; } else if (lastFrameAt && n - lastFrameAt > 3000 && $("watch").hidden) { $("watch").hidden = false; leadOff(); padStop(); } }
   if (video.currentTime !== lastVT) { lastVT = video.currentTime; const now = performance.now(); const res = landmarker.detectForVideo(video, now); processHands(res, now); draw(res); if (coachOn && (now & 7) === 0) coachCheck(); }
   requestAnimationFrame(loop);
 }
@@ -1759,6 +1766,13 @@ $("help").onclick = () => setHelp(!helpOn);
 document.querySelectorAll(".hp .x").forEach(b => b.onclick = () => { $(b.dataset.hp).hidden = true; if ($("hpL").hidden && $("hpR").hidden) setHelp(false); });
 $("howBtn").onclick = () => { setHelp(true); coachOn = true; ci = 0; $("coach").hidden = false; renderCoach(); };
 $("tempo").value = SONGS[0].bpm; $("tempoVal").textContent = SONGS[0].bpm; T.bpm = SONGS[0].bpm; setBeats();
+/* ================= PREFERENCIAS (se quedan en este navegador) ================= */
+const PREF_IDS = ["layoutSel", "mirrorSel", "colorSel", "ukeSoundSel", "flipSel", "chordVoiceSel", "snapSel", "plankSel", "hands", "singChk", "voiceChk", "listenChk", "tapChk", "melLo", "melHi", "melFollow"];
+function savePrefs() { try { const o = { inst, fingers: MELO.fingers, help: helpOn }; PREF_IDS.forEach(id => { const el = $(id); if (el) o[id] = el.type === "checkbox" ? el.checked : el.value; }); localStorage.setItem("uke.prefs", JSON.stringify(o)); } catch (e) {} }
+function loadPrefs() { let o; try { o = JSON.parse(localStorage.getItem("uke.prefs") || "null"); } catch (e) {} if (!o) return;
+  PREF_IDS.forEach(id => { const el = $(id); if (!el || o[id] === undefined) return; if (el.type === "checkbox") el.checked = !!o[id]; else el.value = o[id]; el.dispatchEvent(new Event("change")); });
+  if (o.fingers) o.fingers.forEach((f, i) => { if (MELO.fingers[i]) Object.assign(MELO.fingers[i], f); }); if (o.help === false) setHelp(false); if (o.inst && LESSON_SETS[o.inst]) setInst(o.inst); }
+loadPrefs(); document.addEventListener("change", e => { if (e.target && (PREF_IDS.includes(e.target.id) || e.target.closest("#melFingers"))) savePrefs(); }); $("help").addEventListener("click", savePrefs); document.querySelectorAll("#instSel button").forEach(b => b.addEventListener("click", savePrefs)); $("instBar").addEventListener("change", savePrefs);
 </script>
 </body>
 </html>
