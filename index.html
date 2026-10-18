@@ -593,7 +593,7 @@ function processHands(res, now) {
     if (bestN >= 4) { const vp = best >> 1, vf = !!(best & 1);
       if (vp !== live.pose || vf !== live.flip || lvl !== live.level) { const wasOpen = chord.open; live = { pose: vp, flip: vf, level: lvl }; chord = chordFrom(vp, vf, lvl); if (vp) seen.chord = true; updateChordUI(); coachCheck();
         if (!chord.open && (wasOpen || vp !== 0) && ctx.currentTime - lastAutoStrum > .16) { strum(chord.frets, true, .6 * rightVel + .2); lastAutoStrum = ctx.currentTime; } } }
-    $("plateL").textContent = p ? POSE_SHORT[p] + (flip ? " · dorso" : " · palma") + " · " + LEVEL_NAME[lvl] : "sin pose · al aire";
+    $("plateL").textContent = (p ? POSE_SHORT[p] + (flip ? " · dorso" : " · palma") + " · " + LEVEL_NAME[lvl] : "sin pose · al aire") + ` · giro ${(rollL || 0).toFixed(2)}`;
     handPos.L = ch.lm; { const r = rollOf(ch.lm, "L", ch.wl); rollL = rollL === null ? r : rollL * .75 + r * .25; applyRoll(rollL); }
     $("hpRollL").style.width = Math.round((rollL || 0) * 100) + "%"; $("hpL").hidden = !helpOn; $("ladL").hidden = false; setLadder("ladL", hy, LEVEL_NAME[lvl].toUpperCase());
   } else { handPos.L = null; rollL = null; handY = null; poseHist = []; $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } }
@@ -661,7 +661,7 @@ function draw(res) {
     lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.7)" : "#e9e7e2"; cx.fillText(t, lx, py + i * 15); });
     cx.restore();
   };
-  if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro · ${DENS_NAME[density]}`], rollL || 0, true);
+  if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro ${(rollL || 0).toFixed(2)} · ${DENS_NAME[density]}`], rollL || 0, true);
   if (handPos.R) label(handPos.R, ["R · RASGUEO", "arriba y abajo · puño apaga"], undefined, false);
   const now = performance.now(); flashes = flashes.filter(f => now - f.t < 240);
   flashes.forEach(f => { const k = (now - f.t) / 240; cx.strokeStyle = `rgba(233,231,226,${1 - k})`; cx.lineWidth = 1.5; const y = f.y * H + (f.down ? 1 : -1) * 70 * k; cx.beginPath(); cx.moveTo(f.x * W - 50, y); cx.lineTo(f.x * W + 50, y); cx.stroke(); });
@@ -734,11 +734,11 @@ function rollOf(lm, role = "L", wl = null) {
   const P = wl || lm, sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
   const a = sub(P[5], P[0]), b = sub(P[17], P[0]);
   const n = { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }, nl = Math.hypot(n.x, n.y, n.z) || 1;
-  const nx = Math.abs(n.x / nl), r = Math.max(0, Math.min(1, (nx - .15) / .75));
+  const nx = Math.abs(n.x / nl), r = Math.max(0, Math.min(1, nx));
   rollDbg = { role, nx: +nx.toFixed(2), ny: +Math.abs(n.y / nl).toFixed(2), r: +r.toFixed(2) };
   return r;
 }
-function applyRoll(r) { rollVal = r; let d = r > .8 ? 3 : r < .6 ? 2 : (density === 3 ? 3 : 2); if (d !== density) { density = d; setBeats(); } }
+function applyRoll(r) { rollVal = r; let d = r > .55 ? 3 : r < .42 ? 2 : (density === 3 ? 3 : 2); if (d !== density) { density = d; setBeats(); } }
 let density = 2, rollS = null, rollVal = 0, handPos = { L: null, R: null };      // 0 escaso · 1 negras · 2 patrón · 3 corcheas  (giro de muñeca)
 const DENS_NAME = ["escaso", "negras", "patrón", "corcheas"];
 function slotsNow() { const base = pat().slots, n = base.length; if (patKey === "manual") return base;
