@@ -92,6 +92,9 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 #perf{position:fixed;inset:0;background:var(--bg);display:grid;grid-template-rows:1fr auto}
 .cam{position:relative;overflow:hidden;background:#000}
 .cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.cam video{filter:grayscale(.6) saturate(.9) contrast(1.08) brightness(.72)}
+.cam::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(6,7,10,.55) 100%);pointer-events:none;z-index:1}
+.cam canvas{z-index:1}.ovl{z-index:2}
 .cam canvas{pointer-events:none}
 .ovl{position:absolute;inset:0;pointer-events:none}
 .cam::after{content:"";position:absolute;left:0;right:0;top:0;height:90px;background:linear-gradient(180deg,rgba(6,7,10,.55),transparent);pointer-events:none}
@@ -625,7 +628,9 @@ function draw(res) {
     cx.font = "11px Geist Mono, monospace"; cx.textAlign = rightSide ? "left" : "right";
     const lx = rightSide ? spx + 90 : spx - 90;
     cx.strokeStyle = "rgba(159,211,255,.35)"; cx.beginPath(); cx.moveTo(spx, py); cx.lineTo(lx + (rightSide ? -8 : 8), py - 4); cx.stroke();
-    lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.62)" : "#e9e7e2"; cx.fillText(t, lx, py + i * 15); });
+    const wmax = Math.max(...lines.map(t => cx.measureText(t).width));
+    cx.fillStyle = "rgba(6,7,10,.6)"; cx.fillRect(rightSide ? lx - 8 : lx - wmax - 8, py - 13, wmax + 16, lines.length * 15 + 8);
+    lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.7)" : "#e9e7e2"; cx.fillText(t, lx, py + i * 15); });
     cx.restore();
   };
   if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro · ${DENS_NAME[density]}`], rollL || 0, true);
