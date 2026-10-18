@@ -248,7 +248,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
       <aside class="hp l" id="hpL" hidden>
         <div class="h"><span>L / Acordes</span><small id="hpLst">palma</small><button class="x" data-hp="hpL">cerrar</button></div>
         <table id="hpTable"></table>
-        <div class="sec"><span class="k2">Calidad · gira la mano</span><div class="opts"><span class="opt" id="oPalm">palma · mayor</span><span class="opt" id="oBack">dorso · menor</span></div></div>
+        <div class="sec" id="hpFlip" hidden><span class="k2">Calidad · gira la mano</span><div class="opts"><span class="opt" id="oPalm">palma · mayor</span><span class="opt" id="oBack">dorso · menor</span></div></div>
         <div class="sec"><span class="k2">Giro de muñeca → más ritmo (corcheas)</span><div class="meter"><i id="hpRollL" style="width:0%"></i></div></div>
         <div class="sec"><span class="k2">Altura · sube la mano</span><div class="opts"><span class="opt" id="oL0">básico</span><span class="opt" id="oL1">séptima</span><span class="opt" id="oL2">agudo</span><span class="opt" id="oL3">muy agudo</span></div></div>
       </aside>
@@ -291,6 +291,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
     <div class="grp"><span class="no" data-n="02"><b>Acordes</b></span>
       <div class="fld"><span class="k">Patrón</span><select id="pattern"></select></div>
       <div class="fld"><span class="k">Manos</span><select id="hands"><option value="r">diestro</option><option value="l">zurdo</option></select></div>
+      <div class="fld"><span class="k">Dorso = menor</span><select id="flipSel"><option value="0">apagado</option><option value="1">activo</option></select></div>
     </div>
     <div class="grp"><span class="no" data-n="03"><b>Canción</b></span>
       <div class="fld"><span class="k">Tema</span><select id="song"></select></div>
@@ -463,7 +464,7 @@ function fingerGlyph(f) { return `<span style="display:inline-flex;gap:1px;align
 /* ---------- lecciones de la landing ---------- */
 const LESSONS = [
   { h: "Mano izquierda · cuenta el acorde", pose: 1, cap: "un dedo · la primera", table: true, anim: "count" },
-  { h: "Mano izquierda · gírala", pose: 1, cap: "palma a la cámara · mayor", table: true, anim: "flip" },
+  { h: "Opcional · gírala (dorso = menor)", pose: 1, cap: "apagado por defecto · actívalo en 02 · Acordes", table: true, anim: "flip" },
   { h: "Mano izquierda · levántala", pose: 5, cap: "baja · básico", plays: "G", table: false, anim: "height", lv: ["muy agudo", "agudo", "con séptima", "básico"] },
   { h: "El ritmo va solo", pose: 4, cap: "mantén el acorde y suena · suéltalo y calla", plays: "D DU UDU", table: false, anim: "pattern", slots: "D-DU-UDU" },
   { h: "Mano izquierda · gira la muñeca", pose: 5, cap: "palma plana: el patrón · de canto: corcheas", plays: "patrón", table: false, anim: "roll", lv: ["patrón · plana", "corcheas · de canto"] },
@@ -522,7 +523,7 @@ function extended(lm, role = "L") {
 function palmSign(lm) { const a = { x: lm[5].x - lm[0].x, y: lm[5].y - lm[0].y }, b = { x: lm[17].x - lm[0].x, y: lm[17].y - lm[0].y }; return a.x * b.y - a.y * b.x; }
 function poseOf(e) { const [t, i, m, r, p] = e, n = i + m + r + p; if (i && p && !m && !r) return t ? 7 : 6; if (n === 4 && t) return 5; if (n >= 1) return n; return 0; }
 
-let swapped = false, lastPose = { p: 0, flip: false, n: 0 }, poseHist = [], live = { pose: 0, flip: false, level: 0 }, chord = chordFrom(0);
+let flipOn = false, swapped = false, lastPose = { p: 0, flip: false, n: 0 }, poseHist = [], live = { pose: 0, flip: false, level: 0 }, chord = chordFrom(0);
 let ss = { y: null, t: 0, lastDir: 0, lastT: 0, pinch: [0,0,0,0], armed: true, v: undefined, meter: 0 };
 const ON = .45, OFF = .18;   // umbrales de velocidad vertical (fracción de cuadro / s)
 let seen = { chord: false, strum: false };
@@ -532,7 +533,7 @@ function processHands(res, now) {
   if (hands.length === 2) { ch = swapped ? hands[0] : hands[1]; sh = swapped ? hands[1] : hands[0]; }
   else if (hands.length === 1) { const h = hands[0], left = h.x > .5; if (left !== swapped) ch = h; else sh = h; }
   if (ch) {
-    const e = extended(ch.lm, "L"), p = poseOf(e); let flip = palmSign(ch.lm) < 0; if (swapped) flip = !flip;
+    const e = extended(ch.lm, "L"), p = poseOf(e); let flip = flipOn && palmSign(ch.lm) < (swapped ? 0 : 0); if (flipOn && swapped) flip = !flip; if (!flipOn) flip = false;
     const hy = ch.lm[9].y, lvl = hy > .62 ? 0 : hy > .44 ? 1 : hy > .27 ? 2 : 3;
     poseHist.push(p * 2 + (flip ? 1 : 0)); if (poseHist.length > 7) poseHist.shift();
     const cnt = {}; let best = null, bestN = 0; poseHist.forEach(v => { cnt[v] = (cnt[v] || 0) + 1; if (cnt[v] > bestN) { bestN = cnt[v]; best = v; } });
@@ -635,7 +636,6 @@ function setLadder(id, y, label) { const el = $(id), m = el.querySelector(".mk")
 const COACH = [
   { t1: "Mano izquierda: levanta un dedo", t2: "el primer acorde empieza a sonar con el patrón · bájala y calla", fingers: POSE_FINGERS[1], test: () => live.pose === 1 },
   { t1: "Cambia a cuatro dedos", t2: "la cuarta · mira cómo cambia el nombre", fingers: POSE_FINGERS[4], test: () => live.pose === 4 },
-  { t1: "Gira la mano", t2: "dorso a la cámara · el acorde pasa a menor", fingers: POSE_FINGERS[4], flip: true, test: () => live.flip && live.pose > 0 },
   { t1: "Gira la muñeca izquierda: más ritmo", t2: "palma plana: el patrón · de canto: corcheas", fingers: [1,1,1,1,1], test: () => density === 3 },
   { t1: "Mano derecha: rasguea tú", t2: "enséñala y el patrón se calla · pásala arriba y abajo · puño apaga · quítala y vuelve el patrón", fingers: [1,1,1,1,1], test: () => seen.strum },
   { t1: "Ya está · elige canción en 01 o patrón en 02", t2: "el acorde lo pone tu mano · el ritmo va solo", fingers: [1,1,1,1,1], test: () => false },
@@ -728,7 +728,8 @@ function updateNextMatch() { if (playing && cellIdx >= 0) $("nextName").classLis
 function updateScore() { $("score").textContent = stats.score; $("combo").textContent = stats.combo; $("strums").textContent = stats.strums; }
 function startSong() {
   if (ctx.state === "suspended") ctx.resume();
-  song = SONGS[$("song").value]; key = KEYS.indexOf(song.key); scaleKey = song.scale || "major"; $("key").value = key; $("scale").value = scaleKey; chord = chordFrom(live.pose, live.flip, live.level); updateChordUI(); renderHpL();
+  song = SONGS[$("song").value]; key = KEYS.indexOf(song.key); scaleKey = song.scale || "major";
+  flipOn = song.cells.some(c => ROMAN[c[0]][2]); $("flipSel").value = flipOn ? "1" : "0"; $("hpFlip").hidden = !flipOn; $("key").value = key; $("scale").value = scaleKey; chord = chordFrom(live.pose, live.flip, live.level); updateChordUI(); renderHpL();
   if (song.bar === 3 && pat().bar !== 3) setPattern("vals"); else if (song.bar === 4 && pat().bar !== 4) setPattern("isla");
   totalBeats = buildTl(song); cellOk = []; hits = 0; total = 0; stats = { score: 0, combo: 0, strums: 0 }; updateScore();
   T.bpm = +$("tempo").value; songBeat = -song.bar - 1; cellIdx = -1; T.slot = -1; playing = true;
@@ -805,6 +806,7 @@ $("key").onchange = e => { key = +e.target.value; retheory(); };
 $("scale").onchange = e => { scaleKey = e.target.value; retheory(); };
 $("swing").oninput = e => { $("swingVal").textContent = e.target.value; T.swing = e.target.value / 100; };
 $("hands").onchange = e => swapped = e.target.value === "l";
+$("flipSel").onchange = e => { flipOn = e.target.value === "1"; $("hpFlip").hidden = !flipOn; };
 $("metro").onclick = e => { metroOn = !metroOn; e.target.textContent = "Metrónomo · " + (metroOn ? "on" : "off"); e.target.setAttribute("aria-pressed", metroOn); };
 $("tempo").oninput = e => { $("tempoVal").textContent = e.target.value; T.bpm = +e.target.value; };
 $("pattern").innerHTML = Object.entries(PATTERNS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
