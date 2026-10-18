@@ -100,7 +100,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .tl .k{display:block;font-size:8px}
 .tl .v{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-92);border:1px solid var(--ink-38);padding:5px 10px;text-align:center}
 .tr{position:absolute;top:12px;right:16px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:360px;text-shadow:0 0 6px #000}.tr .k{flex:1 1 100%;text-align:right;order:2;margin-top:4px}.tr button{border-color:var(--ink-16);background:rgba(6,7,10,.35);font-size:10px;padding:5px 10px}
-.coach{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:min(430px,calc(100% - 420px));background:rgba(6,7,10,.92);border:1px solid var(--ink-16);display:grid;grid-template-columns:auto 1fr auto;gap:0 14px;align-items:center;padding:8px 12px;z-index:2}
+.coach{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 420px));background:rgba(6,7,10,.92);border:1px solid var(--ink-16);display:grid;grid-template-columns:auto 1fr auto;gap:0 14px;align-items:center;padding:8px 12px;z-index:2}
 .coach .hand svg{width:40px;height:46px}
 .coach .t1{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
 .coach .t2{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-38);margin-top:2px}
@@ -657,17 +657,19 @@ function setLadder(id, y, label) { const el = $(id), m = el.querySelector(".mk")
 
 /* ================= COACH (tutorial guiado) ================= */
 const COACH = [
-  { t1: "Mano izquierda: levanta un dedo", t2: "el primer acorde empieza a sonar con el patrón · bájala y calla", fingers: POSE_FINGERS[1], test: () => live.pose === 1 },
-  { t1: "Cambia a cuatro dedos", t2: "la cuarta · mira cómo cambia el nombre", fingers: POSE_FINGERS[4], test: () => live.pose === 4 },
-  { t1: "Gira la muñeca izquierda: más ritmo", t2: "palma plana: el patrón · de canto: corcheas", fingers: [1,1,1,1,1], test: () => density === 3 },
-  { t1: "Mano derecha: rasguea tú", t2: "enséñala y el patrón se calla · pásala arriba y abajo · puño apaga · quítala y vuelve el patrón", fingers: [1,1,1,1,1], test: () => seen.strum },
-  { t1: "Ya está · elige canción en 01 o patrón en 02", t2: "el acorde lo pone tu mano · el ritmo va solo", fingers: [1,1,1,1,1], test: () => false },
+  { t1: "Mano izquierda · levanta un dedo", t2: "suena el primer acorde · bájala y se calla", fingers: POSE_FINGERS[1], test: () => live.pose === 1 },
+  { t1: "Ahora cuatro dedos", t2: "otro acorde · cada número de dedos es un acorde de la tonalidad", fingers: POSE_FINGERS[4], test: () => live.pose === 4 },
+  { t1: "Sube la mano", t2: "más alta, más agudo · la escalera de la izquierda te lo marca", fingers: POSE_FINGERS[4], test: () => live.level >= 1 },
+  { t1: "Gira la muñeca de canto", t2: "el ritmo dobla a corcheas · plana, vuelve al patrón", fingers: [1,1,1,1,1], test: () => density === 3 },
+  { t1: "Mano derecha · pásala arriba y abajo", t2: "el patrón se calla y rasgueas tú · quítala y el patrón vuelve", fingers: [1,1,1,1,1], test: () => seen.strum },
+  { t1: "Listo", t2: "abajo, en 03 · Canción, elige un tema y pulsa Tocar · o sigue tocando libre", fingers: [1,1,1,1,1], test: () => false },
 ];
 let ci = 0, coachOn = true, coachTimer = null;
 function renderCoach() {
   const c = COACH[ci]; $("coachT1").textContent = c.t1; $("coachT2").textContent = c.t2; $("coachHand").innerHTML = handSVG(c.fingers, !!c.flip, 40);
   $("coachSteps").innerHTML = COACH.map((_, i) => `<i class="${i <= ci ? "on" : ""}"></i>`).join(""); $("coach").classList.remove("done");
   $("skip").textContent = ci === COACH.length - 1 ? "Cerrar" : "Saltar";
+  $("coachT1").textContent = (ci < COACH.length - 1 ? `${ci + 1}/${COACH.length - 1} · ` : "") + c.t1;
 }
 function coachCheck() {
   if (!coachOn || coachTimer) return;
