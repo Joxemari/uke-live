@@ -791,11 +791,11 @@ function draw(res) {
     cx.strokeStyle = "rgba(159,211,255,.35)"; cx.beginPath(); cx.moveTo(spx, py); cx.lineTo(lx + (rightSide ? -8 : 8), py - 4); cx.stroke();
     const wmax = Math.max(...lines.map(t => cx.measureText(t).width));
     cx.fillStyle = "rgba(6,7,10,.6)"; cx.fillRect(rightSide ? lx - 8 : lx - wmax - 8, py - 13, wmax + 16, lines.length * 15 + 8);
-    lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.7)" : "#e9e7e2"; cx.fillText(t, lx, py + i * 15); });
+    lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.7)" : "#e9e7e2"; cx.font = (i === 0 && arcVal !== undefined ? "13px" : "11px") + " Geist Mono, monospace"; cx.fillText(t, lx, py + i * 15); });
     cx.restore();
   };
   if (inst === "txala") { if (handPos.L) label(handPos.L, ["EZKERRA", `${txalaCount.L} golpes`], undefined, true); if (handPos.R) label(handPos.R, ["ESKUINA", `${txalaCount.R} golpes`]); }
-  else if (inst === "synth") { if (handPos.L) label(handPos.L, ["L · PAD", live.pose ? `${chord.roman} ${chord.name}` : "sin pose", `cutoff ${(rollL || 0).toFixed(2)}`], rollL || 0, true); if (handPos.R && !arc) label(handPos.R, ["R · " + MODE_ES[synthMode].toUpperCase(), synthMode === "melody" ? `cutoff ${leadCut.toFixed(2)}` : "puño = modos"], synthMode === "melody" ? leadCut : undefined); }
+  else if (inst === "synth") { if (handPos.L) label(handPos.L, ["L · PAD", live.pose ? `${chord.roman} ${chord.name}` : "sin pose", `cutoff ${(rollL || 0).toFixed(2)}`], rollL || 0, true); if (handPos.R && !arc) { if (pinchInfo) label(handPos.R, [pinchInfo.name.toUpperCase() + " · " + pinchInfo.text, "gira para ajustar · suelta y se queda"], pinchInfo.value); else label(handPos.R, ["R · " + MODE_ES[synthMode].toUpperCase(), synthMode === "melody" ? `cutoff ${leadCut.toFixed(2)}` : "pinza un dedo = función · giro = cuánto"], synthMode === "melody" ? leadCut : undefined); } }
   else if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro ${Math.round((rollL || 0) * 60)}° · ${DENS_NAME[density]}`], rollL || 0, true);
   if (handPos.R) label(handPos.R, ["R · RASGUEO", "arriba y abajo · puño apaga"], undefined, false);
   const now = performance.now(); flashes = flashes.filter(f => now - f.t < 240);
@@ -1011,12 +1011,12 @@ function setInst(k) { LESSONS = LESSON_SETS[k]; li = 0; if ($("landing") && !$("
 // --- notas extendidas para el pad (diatónicas): triada · +7 · +9 · +13
 function padNotes(pose, flipped, level) {
   if (!pose) return [];
-  const ov = matrixType(pose, flipped, level); if (ov !== null) { const r0 = diatonic(pose).root; const root = 48 + r0; return CHORD_LIB[ov].map(i => root + i); }
+  const ov = matrixType(pose, flipped, level); if (ov !== null) { const r0 = diatonic(pose).root; let root = 48 + r0; if (root < 50) root += 12; return CHORD_LIB[ov].map(i => root + i); }
   const sc = SCALE(), d = pose, at = i => sc[(d - 1 + i) % 7] + 12 * Math.floor((d - 1 + i) / 7);
   let iv = [0, 2, 4]; if (level >= 1) iv.push(6); if (level >= 2) iv.push(8); if (level >= 3) iv.push(12);
   let semis = iv.map(i => at(i) - at(0));
   if (flipped) semis = semis.map((v, i) => i === 1 ? (v === 4 ? 3 : v === 3 ? 4 : v) : v);
-  const root = 48 + (key + at(0)) % 12;          // C3..B3
+  let root = 48 + (key + at(0)) % 12; if (root < 50) root += 12;   // raíz entre Re3 y Do#4, como gesture.live
   return semis.map(v => root + v);
 }
 // --- PAD: voces sostenidas con filtro
@@ -1024,16 +1024,17 @@ let pad = { voices: [], bus: null, filt: null, notes: [], lfo: null };
 function padInit() {
   if (pad.bus) return;
   pad.bus = ctx.createGain(); pad.bus.gain.value = .55;
-  pad.filt = ctx.createBiquadFilter(); pad.filt.type = "lowpass"; pad.filt.frequency.value = 1100; pad.filt.Q.value = 2.2;
+  pad.filt = ctx.createBiquadFilter(); pad.filt.type = "lowpass"; pad.filt.frequency.value = 1600; pad.filt.Q.value = 2.2;
+  pad.filt2 = ctx.createBiquadFilter(); pad.filt2.type = "lowpass"; pad.filt2.frequency.value = 1600; pad.filt2.Q.value = .6;
   pad.sat = ctx.createWaveShaper(); { const n = 512, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(x * 1.6) / Math.tanh(1.6); } pad.sat.curve = c; pad.sat.oversample = "2x"; }
   pad.subBus = ctx.createGain(); pad.subBus.gain.value = 1;
   // LFO lento sobre el filtro
   pad.lfo = ctx.createOscillator(); pad.lfo.frequency.value = .12; const lg = ctx.createGain(); lg.gain.value = 120; pad.lfo.connect(lg); lg.connect(pad.filt.frequency); pad.lfo.start();
   // chorus: dos copias retardadas y moduladas
   const dry = ctx.createGain(); dry.gain.value = .7; const wetC = ctx.createGain(); wetC.gain.value = .5;
-  [[.021, .8, .003], [.029, .6, .0025]].forEach(([d, rate, depth]) => { const dl = ctx.createDelay(.1); dl.delayTime.value = d; const l = ctx.createOscillator(), lg2 = ctx.createGain(); l.frequency.value = rate; lg2.gain.value = depth; l.connect(lg2); lg2.connect(dl.delayTime); l.start(); pad.filt.connect(dl); dl.connect(wetC); });
+  [[.021, .8, .003], [.029, .6, .0025]].forEach(([d, rate, depth]) => { const dl = ctx.createDelay(.1); dl.delayTime.value = d; const l = ctx.createOscillator(), lg2 = ctx.createGain(); l.frequency.value = rate; lg2.gain.value = depth; l.connect(lg2); lg2.connect(dl.delayTime); l.start(); pad.filt2.connect(dl); dl.connect(wetC); });
   const conv = ctx.createConvolver(); conv.buffer = ir(2.6); const wetR = ctx.createGain(); wetR.gain.value = .32;
-  const sum = ctx.createGain(); pad.filt.connect(dry); dry.connect(sum); wetC.connect(sum); sum.connect(pad.sat); pad.sat.connect(master); sum.connect(conv); conv.connect(wetR); wetR.connect(master);
+  const sum = ctx.createGain(); pad.filt.connect(pad.filt2); pad.filt2.connect(dry); dry.connect(sum); wetC.connect(sum); sum.connect(pad.sat); pad.sat.connect(master); sum.connect(conv); conv.connect(wetR); wetR.connect(master);
   pad.bus.connect(pad.filt); pad.subBus.connect(pad.filt);
 }
 function padSet(notes) {
@@ -1057,11 +1058,11 @@ function padSet(notes) {
   if (!pad.trem) { pad.trem = ctx.createGain(); pad.trem.gain.value = 1; pad.tremLfo = ctx.createOscillator(); pad.tremLfo.type = "sine"; pad.tremG = ctx.createGain(); pad.tremG.gain.value = 0; pad.tremLfo.connect(pad.tremG); pad.tremG.connect(pad.trem.gain); pad.tremLfo.start(); pad.bus.disconnect(); pad.bus.connect(pad.trem); pad.grit = ctx.createWaveShaper(); pad.grit.curve = null; pad.trem.connect(pad.filt); }
   pad.tremLfo.frequency.value = (T.bpm / 60) * (SCULPT.trem > .66 ? 4 : SCULPT.trem > .33 ? 2 : 1); pad.tremG.gain.value = SCULPT.trem * .5;
   // sub: la raíz una octava abajo, seno + triángulo
-  const root = notes[0] - 12, fr = 440 * Math.pow(2, (root - 69) / 12), gs = ctx.createGain(), s1 = ctx.createOscillator(), s2 = ctx.createOscillator();
-  s1.type = "sine"; s2.type = "triangle"; s1.frequency.value = fr; s2.frequency.value = fr * .5; s1.connect(gs); s2.connect(gs); gs.gain.setValueAtTime(.0001, t); gs.gain.exponentialRampToValueAtTime(.28, t + .5); gs.connect(pad.subBus); s1.start(t); s2.start(t); pad.voices.push({ g: gs, os: [s1, s2] });
+  const root = notes[0] - 12, fr = 440 * Math.pow(2, (root - 69) / 12), gs = ctx.createGain(), s1 = ctx.createOscillator();
+  s1.type = "sine"; s1.frequency.value = fr; s1.connect(gs); gs.gain.setValueAtTime(.0001, t); gs.gain.exponentialRampToValueAtTime(.022, t + .5); gs.connect(pad.subBus); s1.start(t); pad.voices.push({ g: gs, os: [s1] });
 }
 function padStop() { if (pad.notes.length) padSet([]); }
-function padCutoff(r) { if (!pad.filt) return; const f = 320 * Math.pow(2, r * 4.2); pad.filt.frequency.cancelScheduledValues(ctx.currentTime); pad.filt.frequency.setTargetAtTime(f, ctx.currentTime, .08); pad.filt.Q.value = 2.2 + SCULPT.grit * 10; }
+function padCutoff(r) { if (!pad.filt) return; const f = 900 * Math.pow(2, r * 3.4); pad.filt.frequency.cancelScheduledValues(ctx.currentTime); pad.filt.frequency.setTargetAtTime(f, ctx.currentTime, .08); pad.filt2.frequency.setTargetAtTime(f * 1.3, ctx.currentTime, .08); pad.filt.Q.value = 2.2 + SCULPT.grit * 10; }
 function padRetrigger() { const n = pad.notes.slice(); pad.notes = []; padSet(n); }
 
 // --- MELODÍA: la altura elige la nota de la escala, la pinza la hace sonar
@@ -1128,7 +1129,7 @@ function bassStep(ps, when, spb) {
 function bassNote(midi, when, dur, v = .8) { const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain(); o.type = "sawtooth"; o.frequency.value = 440 * Math.pow(2, (midi - 69) / 12); f.type = "lowpass"; f.frequency.setValueAtTime(700 + bassRes * 1200, when); f.frequency.exponentialRampToValueAtTime(200, when + dur); f.Q.value = 2 + bassRes * 14;
   g.gain.setValueAtTime(.0001, when); g.gain.exponentialRampToValueAtTime(.35 * v, when + .01); g.gain.setValueAtTime(.35 * v, when + dur * .7); g.gain.exponentialRampToValueAtTime(.0001, when + dur); o.connect(f); f.connect(g); g.connect(master); o.start(when); o.stop(when + dur + .02); }
 let bassAuto = 1, bassOn = false, bassRes = .3;
-function renderDrumLadders() { const h = $("hpSc2"); if (!h) return; const m = synthMode; if (m === "drums") h.innerHTML = ["bombo", "caja", "charles", "toms"].map((k, i) => `<span>${k}</span><div class="lv">${[0,1,2,3].map(j => `<i class="${DRUMP[i] > j / 4 ? "on" : ""}"></i>`).join("")}</div>`).join(""); else if (m === "bass") h.innerHTML = ["densidad", "notas", "octavas", "feel"].map((k, i) => `<span>${k}</span><div class="lv">${[0,1,2].map(j => `<i class="${BASSA[["density","tones","octaves","feel"][i]] > j / 3 ? "on" : ""}"></i>`).join("")}</div>`).join(""); }
+function renderDrumLadders() { const h = $("hpSc2"); if (!h) return; const m = synthMode; if (m === "drums") h.innerHTML = ["bombo", "caja", "charles", "toms"].map((k, i) => `<span>${k}</span><div class="lv">${[0,1,2,3,4,5,6,7].map(j => `<i class="${DRUMP[i] > j / 8 ? "on" : ""}"></i>`).join("")}</div>`).join(""); else if (m === "bass") h.innerHTML = ["densidad", "notas", "octavas", "feel"].map((k, i) => `<span>${k}</span><div class="lv">${[0,1,2,3,4,5,6,7].map(j => `<i class="${BASSA[["density","tones","octaves","feel"][i]] > j / 8 ? "on" : ""}"></i>`).join("")}</div>`).join(""); }
 
 // --- TXALAPARTA: tres tablas, golpe = madera
 const PLANK_SETS = { 3: [[165, "baxua"], [220, "erdikoa"], [294, "altua"]], 5: [[147, "I"], [175, "II"], [196, "III"], [233, "IV"], [262, "V"]], 7: [[131, "I"], [147, "II"], [175, "III"], [196, "IV"], [220, "V"], [262, "VI"], [294, "VII"]] };
@@ -1207,13 +1208,15 @@ function processSynth(hands, now) {
   // mano derecha según modo
   if (sh) {
     const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), palm = d3(lm[0], lm[9]), fist = !e[1] && !e[2] && !e[3] && !e[4] && d3(lm[4], lm[8]) > .3 * palm;
-    const pin = fist ? [false, false, false, false] : [8,12,16,20].map(tip => d3(lm[4], lm[tip]) < .22 * palm);
+    const dists = [8,12,16,20].map(tip => d3(lm[4], lm[tip]) / palm), minI = dists.indexOf(Math.min(...dists));
+    const pin = [false, false, false, false]; if (!fist) { const prev = synthState.R.pinch.findIndex(Boolean); if (prev >= 0 && dists[prev] < .34) pin[prev] = true; else if (dists[minI] < .24) pin[minI] = true; }
     // arco de modos: puño → aparece anclado · mover → resalta · abrir → elige
     if (fist) { if (!arc) arc = { ax: lm[9].x, ay: y, sel: MODES.findIndex(m => m[0] === synthMode), t: now };
       else if (now - arc.t > 250) { const dx = (arc.ax - lm[9].x) * (canvas.width / canvas.height), dy = y - arc.ay; if (Math.hypot(dx, dy) > .04) { const a = Math.atan2(dy, -dx); let best = 0, bd = 9; MODES.forEach((_, i) => { const am = Math.PI * (.58 + i * .21) - Math.PI; const d = Math.abs(Math.atan2(Math.sin(a - am), Math.cos(a - am))); if (d < bd) { bd = d; best = i; } }); arc.sel = best; } } }
     else if (arc) { if (now - arc.t > 250 && arc.sel >= 0) setSynthMode(MODES[arc.sel][0]); arc = null; }
     const r = rollOf(lm, "R", sh.wl); rollS = rollS === null ? r : rollS * .75 + r * .25;
     if (!arc) {
+      pinchInfo = null;
       if (synthMode === "melody") {
         leadCut = rollS; if (lead) lead.fl.frequency.setTargetAtTime(500 * Math.pow(2, leadCut * 3.5), ctx.currentTime, .05);
         const which = pin.findIndex(Boolean), m = leadNoteFor(y);
@@ -1223,17 +1226,19 @@ function processSynth(hands, now) {
         for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", which === i); } const hc = $("hpCut"); if (hc) hc.style.width = Math.round(leadCut * 100) + "%";
       } else if (synthMode === "drums") {
         // pinza = familia · giro mientras pinzas = presencia (silencio → fantasma → base → lleno → fills) · suéltala y se queda · giro a 0 la apaga
-        pin.forEach((c, i) => { if (c) { const v = Math.round(rollS * 4) / 4; if (DRUMP[i] !== v) { DRUMP[i] = v; renderDrumLadders(); } if (!synthState.R.pinch[i]) DRUMS[i](ctx.currentTime, .9); } });
-        const fam = ["bombo", "caja", "charles", "toms"], lv = ["silencio", "fantasma", "base", "lleno", "fills"];
+        pin.forEach((c, i) => { if (c) { const v = Math.round(rollS * 100) / 100; if (DRUMP[i] !== v) { DRUMP[i] = v; renderDrumLadders(); } if (!synthState.R.pinch[i]) DRUMS[i](ctx.currentTime, .9); } });
+        const fam = ["bombo", "caja", "charles", "toms"], lv = ["silencio", "fantasma", "base", "lleno", "fills"]; { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: fam[pi0], value: DRUMP[pi0], text: lv[Math.round(DRUMP[pi0] * 4)] } : null; }
         $("plateR").textContent = `batería · ${fam.map((f, i) => f + " " + lv[Math.round(DRUMP[i] * 4)]).join(" · ")}`; const pi = pin.findIndex(Boolean); setLadder("ladR", y, pi >= 0 ? fam[pi].toUpperCase() + " · " + lv[Math.round(rollS * 4)] : "PINZA = FAMILIA"); synthLine = null;
         for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); }
       } else if (synthMode === "fx") {
         pin.forEach((c, i) => { if (c !== !!synthState.R.pinch[i]) fxSet(i, c, rollS); else if (c) fxSet(i, true, rollS); });
+        { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: ["filtro", "crush", "delay", "stutter"][pi0], value: rollS, text: Math.round(rollS * 100) + "%" } : null; }
         $("plateR").textContent = `fx · ${pin.some(Boolean) ? ["filtro", "crush", "delay", "stutter"].filter((_, i) => pin[i]).join(" + ") : "pinza = efecto"} · giro ${Math.round(rollS * 60)}°`; setLadder("ladR", y, "FX"); synthLine = null;
         for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); } const hc = $("hpCut"); if (hc) hc.style.width = Math.round(rollS * 100) + "%";
       } else if (synthMode === "sculpt") {
         const keys = ["arp", "env", "glide", "trem"]; let changed = false;
-        pin.forEach((c, i) => { if (c) { const v = Math.round(rollS * 4) / 4; if (SCULPT[keys[i]] !== v) { SCULPT[keys[i]] = v; changed = true; } } });
+        pin.forEach((c, i) => { if (c) { const v = Math.round(rollS * 20) / 20; if (SCULPT[keys[i]] !== v) { SCULPT[keys[i]] = v; changed = true; } } });
+        { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: ["arp", "envolvente", "glide", "trémolo"][pi0], value: SCULPT[keys[pi0]], text: Math.round(SCULPT[keys[pi0]] * 100) + "%" } : null; }
         const grit = Math.round(Math.max(0, Math.min(1, 1.25 - y)) * 4) / 4; if (pin.some(Boolean) && SCULPT.grit !== grit) { SCULPT.grit = grit; changed = true; }
         const spread = Math.round(Math.max(0, Math.min(1, (lm[9].x - .05) / .45)) * 4) / 4; if (pin.some(Boolean) && SCULPT.spread !== spread) { SCULPT.spread = spread; changed = true; }
         if (changed) { padCutoff(rollL || 0); if (pin[1] || pin[3]) padRetrigger(); const hs = $("hpSc"); if (hs) hs.innerHTML = ["arp", "env", "glide", "trem", "grit", "spread"].map(k => `<span>${k}</span><div class="lv">${[0,1,2,3].map(j => `<i class="${SCULPT[k] > j / 4 ? "on" : ""}"></i>`).join("")}</div>`).join(""); }
@@ -1241,7 +1246,8 @@ function processSynth(hands, now) {
         for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); }
       } else {
         // bajo: pinza = aspecto (densidad, notas del acorde, saltos de octava, feel) · giro = cuánto · altura = resonancia
-        const keysB = ["density", "tones", "octaves", "feel"]; pin.forEach((c, i) => { if (c) { bassOn = true; const v = Math.round(rollS * 3) / 3; if (BASSA[keysB[i]] !== v) { BASSA[keysB[i]] = v; renderDrumLadders(); } } });
+        const keysB = ["density", "tones", "octaves", "feel"]; pin.forEach((c, i) => { if (c) { bassOn = true; const v = Math.round(rollS * 100) / 100; if (BASSA[keysB[i]] !== v) { BASSA[keysB[i]] = v; renderDrumLadders(); } } });
+        { const pi0 = pin.findIndex(Boolean), labB = ["densidad", "notas", "octavas", "feel"]; pinchInfo = pi0 >= 0 ? { name: labB[pi0], value: BASSA[keysB[pi0]], text: pi0 === 3 ? (BASSA.feel < .33 ? "recto" : BASSA.feel < .66 ? "tresillo" : "galope") : Math.round(BASSA[keysB[pi0]] * 100) + "%" } : null; }
         bassRes = Math.max(0, Math.min(1, 1.25 - y));
         const lab = ["densidad", "notas", "octavas", "feel"], pi = pin.findIndex(Boolean);
         $("plateR").textContent = `bajo${bassOn ? "" : " · pinza para arrancar"} · densidad ${BASSA.density.toFixed(2)} · notas ${BASSA.tones.toFixed(2)} · octavas ${BASSA.octaves.toFixed(2)} · feel ${BASSA.feel < .33 ? "recto" : BASSA.feel < .66 ? "tresillo" : "galope"}`; setLadder("ladR", y, pi >= 0 ? lab[pi].toUpperCase() + " " + Math.round(rollS * 3) / 3 : "RESONANCIA " + bassRes.toFixed(1)); synthLine = null;
@@ -1252,7 +1258,7 @@ function processSynth(hands, now) {
     if ($("hpR").hidden && helpOn) renderHpSynth();
   } else { handPos.R = null; leadOff(); arc = null; synthLine = null; if (fx) [0,1,2,3].forEach(i => fxSet(i, false)); synthState.R.pinch = [0,0,0,0]; rollS = null; $("plateR").textContent = `fuera · modo ${MODE_ES[synthMode]} · puño = arco de modos`; $("ladR").hidden = true; $("hpR").hidden = true; }
 }
-let synthLine = null;
+let synthLine = null, pinchInfo = null;
 function setSynthMode(m) { synthMode = m; $("modeSel").value = m; leadOff(); if (fx) [0,1,2,3].forEach(i => fxSet(i, false)); if (!$("perf").hidden) renderHpSynth(); $("songLbl").textContent = playing ? song.title : ("Synth · " + MODE_ES[m]); }
 const TX_LINE = .62, TX_REARM = .56;
 let ttakun = false;
