@@ -512,9 +512,10 @@ function extended(lm, role = "L") {
   [[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]].forEach(([m, pip, dip, tip], i) => {
     const straight = ang(lm[m], lm[pip], lm[tip]), far = d3(lm[tip], w) / Math.max(1e-4, d3(lm[pip], w));
     if (straight > 150 && far > 1.08) st[i + 1] = 1; else if (straight < 120 || far < 0.98) st[i + 1] = 0; });
-  // pulgar: lejos del nudillo del índice y recto en su articulación
-  const away = d3(lm[4], lm[5]) / palm, tstraight = ang(lm[2], lm[3], lm[4]);
-  if (away > .62 && tstraight > 140) st[0] = 1; else if (away < .45 || tstraight < 115) st[0] = 0;
+  // pulgar: abierto si su punta queda claramente más lejos del nudillo del meñique que el nudillo del índice,
+  // o claramente separada del nudillo del índice (con histéresis)
+  const width = Math.max(1e-4, d3(lm[5], lm[17])), spread = d3(lm[4], lm[17]) / width, away = d3(lm[4], lm[5]) / palm;
+  if (spread > 1.28 || away > .72) st[0] = 1; else if (spread < 1.1 && away < .5) st[0] = 0;
   return st.slice();
 }
 function palmSign(lm) { const a = { x: lm[5].x - lm[0].x, y: lm[5].y - lm[0].y }, b = { x: lm[17].x - lm[0].x, y: lm[17].y - lm[0].y }; return a.x * b.y - a.y * b.x; }
