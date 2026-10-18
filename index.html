@@ -141,16 +141,17 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .ladder-v .mk{position:absolute;left:-9px;width:19px;height:5px;background:var(--ink);border-radius:1px;transform:translateY(-50%);transition:top .08s;box-shadow:0 0 8px rgba(233,231,226,.5)}
 .ladder-v .mk span{position:absolute;left:26px;top:-5px;font-size:10px;letter-spacing:.16em;color:var(--ink);white-space:nowrap;text-shadow:0 0 6px #000}
 .ladder-v.r .mk{left:auto;right:-9px}.ladder-v.r .mk span{left:auto;right:26px}
-.hp{position:absolute;top:84px;width:244px;background:rgba(6,7,10,.42);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:12px 14px 14px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-62);display:grid;gap:12px;max-height:calc(100% - 240px);overflow:hidden}
-.hp.l{left:110px}.hp.r{right:110px;text-align:right}
+.hp{position:absolute;top:84px;width:280px;background:rgba(6,7,10,.66);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:12px 14px 14px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-62);display:grid;gap:12px;max-height:calc(100% - 240px);overflow:hidden}
+.hp.l{left:96px}.hp.r{right:96px;text-align:right}
 .hp .h{display:grid;gap:3px;white-space:nowrap}
 .hp .h span{color:var(--ink);font-size:12px;letter-spacing:.16em}
 .hp .h small{font-size:9px;color:var(--ink-38);letter-spacing:.18em}
 .hp .h .x{display:none}
-.hp table{border-collapse:separate;border-spacing:0 3px;width:100%}
+.hp table{border-collapse:separate;border-spacing:0 3px;width:100%;table-layout:fixed}
+.hp col.c1{width:34px}.hp col.c2{width:52px}
 .hp th{font-weight:400;text-align:left;padding:0 8px 2px;font-size:9px;color:var(--ink-38);letter-spacing:.18em}
 .hp th:last-child,.hp td:last-child{text-align:right}
-.hp td{padding:4px 8px;color:var(--ink-62);font-size:11px;letter-spacing:.04em;text-transform:none;white-space:nowrap;background:rgba(0,0,0,.28);border-top:1px solid rgba(233,231,226,.05);border-bottom:1px solid rgba(233,231,226,.05)}
+.hp td{padding:4px 8px;color:var(--ink-62);font-size:11px;letter-spacing:.04em;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(0,0,0,.28);border-top:1px solid rgba(233,231,226,.05);border-bottom:1px solid rgba(233,231,226,.05)}
 .hp td:first-child{border-left:1px solid rgba(233,231,226,.05);color:var(--ink-38);font-size:10px;letter-spacing:.1em;width:28px}
 .hp td:last-child{border-right:1px solid rgba(233,231,226,.05);color:var(--ink-92)}
 .hp tr.on td{background:rgba(233,231,226,.1);color:var(--ink);border-color:var(--ink-62)}
@@ -455,7 +456,7 @@ function handSVG(fingers, flipped, size = 120) {
   const W = [[32,88],[44,62],[58,58],[72,62],[84,72],[60,118]];
   let s = `<svg viewBox="-4 -6 112 132" width="${size}" height="${size * 1.15}" fill="none" stroke="${flipped ? "rgba(159,211,255,.45)" : "#9fd3ff"}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px rgba(159,211,255,.5))" aria-hidden="true">`;
   s += `<path d="M32 88 L44 62 L58 58 L72 62 L84 72 L60 118 Z" ${flipped ? 'stroke-dasharray="3 3"' : ""}/>`;
-  fingers.forEach((on, i) => { const pts = on ? F[i] : curl[i]; s += `<polyline points="${pts.map(p => p.join(",")).join(" ")}"/>`; const t = pts[3]; s += `<circle cx="${t[0]}" cy="${t[1]}" r="3.2" fill="#06070a"/>`; });
+  fingers.forEach((on, i) => { const k = Math.max(0, Math.min(1, +on)); const pts = F[i].map((p, j) => [curl[i][j][0] + (p[0] - curl[i][j][0]) * k, curl[i][j][1] + (p[1] - curl[i][j][1]) * k]); s += `<polyline points="${pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}"/>`; const t = pts[3]; s += `<circle cx="${t[0].toFixed(1)}" cy="${t[1].toFixed(1)}" r="3.2" fill="#06070a"/>`; });
   s += `<circle cx="60" cy="118" r="3.4" fill="#06070a"/><path d="M56 80 h8 M60 76 v8" stroke-width="1.2"/></svg>`;
   return s;
 }
@@ -471,18 +472,25 @@ const LESSONS = [
   { h: "Mano derecha · rasguea tú", pose: 5, cap: "enséñala y el patrón se calla · quítala y vuelve", plays: "↓ ↑", table: false, text: ["pásala arriba y abajo: cada pasada es un rasgueo","alta suena fuerte, baja suave · puño: apaga","pinza del pulgar con un dedo: una cuerda (G C E A)"] },
   { h: "Canciones guiadas", pose: 0, cap: "el acorde de ahora, el siguiente y qué dedos", plays: "01", table: false, text: ["elige tema y tempo en 03 · Canción","se marca el acorde que toca, el que viene y la pose","sumas puntos por pulso correcto"] },
 ];
-let li = 0, lessonTimer = null, lessonTick = 0;
+let li = 0, lessonTimer = null, lessonTick = 0, handCur = [0,1,0,0,0], handTgt = [0,1,0,0,0], handFlip = false, handRaf = null;
+function handLoop() {
+  let moving = false; handCur = handCur.map((v, i) => { const n = v + (handTgt[i] - v) * .18; if (Math.abs(n - handTgt[i]) > .002) moving = true; return Math.abs(n - handTgt[i]) <= .002 ? handTgt[i] : n; });
+  const el = document.querySelector("#lesson .hand"); if (el && (moving || !el.dataset.done)) { el.innerHTML = handSVG(handCur, handFlip); el.dataset.done = moving ? "" : "1"; }
+  handRaf = requestAnimationFrame(handLoop);
+}
+function setHand(f, flip = false) { handTgt = f.slice(); handFlip = flip; const hh = document.querySelector("#lesson .hand"); if (hh) { hh.style.transition = "transform .8s cubic-bezier(.4,0,.2,1)"; hh.style.transform = flip ? "rotateY(180deg)" : "rotateY(0deg)"; } const el = document.querySelector("#lesson .hand"); if (el) el.dataset.done = ""; if (!handRaf) handLoop(); }
 function animateLesson() {
   clearInterval(lessonTimer); lessonTick = 0;
   lessonTimer = setInterval(() => {
     lessonTick++; const L = LESSONS[li], box = $("lesson"); if (!box) return;
-    if (L.anim === "count") { const p = (lessonTick % 7) + 1, c = chordFrom(p); box.querySelector(".hand").innerHTML = handSVG(POSE_FINGERS[p], false); box.querySelector(".plays .v").textContent = c.roman + " " + c.name; box.querySelectorAll("table tr").forEach((tr, i) => tr.classList.toggle("on", i === p)); box.querySelector(".cap span").textContent = POSE_HELP[p]; }
-    else if (L.anim === "flip") { const f = lessonTick % 2 === 1, c = chordFrom(1, f); box.querySelector(".hand").innerHTML = handSVG(POSE_FINGERS[1], f); box.querySelector(".plays .v").textContent = c.roman + " " + c.name; box.querySelectorAll("table tr").forEach((tr, i) => tr.classList.toggle("on", i === 1)); box.querySelectorAll("table td:last-child").forEach((td, i) => { if (i) { const cc = chordFrom(i, f); td.textContent = cc.roman + " " + cc.name; } }); box.querySelector(".cap span").textContent = f ? "dorso a la cámara · menor" : "palma a la cámara · mayor"; }
-    else if (L.anim === "height") { const lv = lessonTick % 4, c = chordFrom(5, false, lv); const h = box.querySelector(".hand"); h.style.transform = `translateY(${(1.5 - lv) * 22}px)`; h.style.transition = "transform .4s"; box.querySelector(".plays .v").textContent = c.name; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", 3 - i === lv)); box.querySelector(".cap span").textContent = ["baja · básico", "media · con séptima", "alta · agudo", "arriba · muy agudo"][lv]; }
+    if (L.anim === "count") { const p = (lessonTick % 7) + 1, c = chordFrom(p); setHand(POSE_FINGERS[p]); box.querySelector(".plays .v").textContent = c.roman + " " + c.name; box.querySelectorAll("table tr").forEach((tr, i) => tr.classList.toggle("on", i === p)); box.querySelector(".cap span").textContent = POSE_HELP[p]; }
+    else if (L.anim === "flip") { const f = lessonTick % 2 === 1, c = chordFrom(1, f); setHand(POSE_FINGERS[1], f); box.querySelector(".plays .v").textContent = c.roman + " " + c.name; box.querySelectorAll("table tr").forEach((tr, i) => tr.classList.toggle("on", i === 1)); box.querySelectorAll("table td:last-child").forEach((td, i) => { if (i) { const cc = chordFrom(i, f); td.textContent = cc.roman + " " + cc.name; } }); box.querySelector(".cap span").textContent = f ? "dorso a la cámara · menor" : "palma a la cámara · mayor"; }
+    else if (L.anim === "height") { const lv = lessonTick % 4, c = chordFrom(5, false, lv); const h = box.querySelector(".hand"); h.style.transform = `translateY(${(1.5 - lv) * 22}px)`; h.style.transition = "transform .9s cubic-bezier(.4,0,.2,1)"; box.querySelector(".plays .v").textContent = c.name; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", 3 - i === lv)); box.querySelector(".cap span").textContent = ["baja · básico", "media · con séptima", "alta · agudo", "arriba · muy agudo"][lv]; }
     else if (L.anim === "pattern") { const sl = "D-DU-UDU", k = lessonTick % 8; box.querySelectorAll(".slot").forEach((el, i) => el.classList.toggle("on", i === k)); }
-    else if (L.anim === "roll") { const r = (Math.sin(lessonTick / 4) + 1) / 2, h = box.querySelector(".hand"); h.style.transform = `scaleX(${1 - r * .7})`; h.style.transition = "transform .25s"; const d = r < .5 ? 0 : 1; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === d)); box.querySelector(".plays .v").textContent = ["patrón", "corcheas"][d]; }
+    else if (L.anim === "roll") { const r = (Math.sin(lessonTick / 4) + 1) / 2, h = box.querySelector(".hand"); h.style.transform = `scaleX(${1 - r * .7})`; h.style.transition = "transform .3s linear"; const d = r < .5 ? 0 : 1; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === d)); box.querySelector(".plays .v").textContent = ["patrón", "corcheas"][d]; }
     else if (L.anim === "pinch") { const k = lessonTick % 4; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === k)); box.querySelector(".plays .v").textContent = ["G", "C", "E", "A"][k]; }
-  }, LESSONS[li].anim === "pattern" ? 333 : LESSONS[li].anim === "roll" ? 120 : 1000);
+  }, LESSONS[li].anim === "pattern" ? 333 : LESSONS[li].anim === "roll" ? 120 : 1100);
+  const L = LESSONS[li]; handCur = handCur.slice(); setHand(L.pose ? POSE_FINGERS[L.pose] : [0,0,0,0,0]);
 }
 function renderLesson() {
   const L = LESSONS[li]; $("lessonH").textContent = L.h;
@@ -605,8 +613,8 @@ function draw(res) {
     lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.62)" : "#e9e7e2"; cx.fillText(t, lx, py + i * 15); });
     cx.restore();
   };
-  if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro · ${DENS_NAME[density]}`], rollL || 0);
-  if (handPos.R) label(handPos.R, ["R · RASGUEO", "arriba y abajo · puño apaga"], undefined, true);
+  if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", `giro · ${DENS_NAME[density]}`], rollL || 0, true);
+  if (handPos.R) label(handPos.R, ["R · RASGUEO", "arriba y abajo · puño apaga"], undefined, false);
   const now = performance.now(); flashes = flashes.filter(f => now - f.t < 240);
   flashes.forEach(f => { const k = (now - f.t) / 240; cx.strokeStyle = `rgba(233,231,226,${1 - k})`; cx.lineWidth = 1.5; const y = f.y * H + (f.down ? 1 : -1) * 70 * k; cx.beginPath(); cx.moveTo(f.x * W - 50, y); cx.lineTo(f.x * W + 50, y); cx.stroke(); });
 }
@@ -615,7 +623,7 @@ function draw(res) {
 let hpLastVel = -1, hpLastDens = -1, hpPinchT = [0,0,0,0];
 function renderHpL() {
   const tgt = playing && cellIdx >= 0 ? ROMAN[tl[cellIdx].roman][0] : 0, nxt = playing && cellIdx >= 0 && tl[cellIdx + 1] ? ROMAN[tl[cellIdx + 1].roman][0] : 0;
-  $("hpTable").innerHTML = `<tr><th>Deg</th><th>Pose</th><th>Acorde</th></tr>` + [1,2,3,4,5,6,7].map(p => { const c = chordFrom(p, live.flip, live.level); const mark = p === tgt ? "▶" : p === nxt ? "›" : "0"; return `<tr class="${live.pose === p ? "on" : ""} ${p === tgt ? "tgt" : ""}"><td>${mark}${p}</td><td>${fingerGlyph(POSE_FINGERS[p])}</td><td>${c.roman} ${c.name}</td></tr>`; }).join("");
+  $("hpTable").innerHTML = `<colgroup><col class="c1"><col class="c2"><col></colgroup><tr><th>Deg</th><th>Pose</th><th>Acorde</th></tr>` + [1,2,3,4,5,6,7].map(p => { const c = chordFrom(p, live.flip, live.level); const mark = p === tgt ? "▶" : p === nxt ? "›" : "0"; return `<tr class="${live.pose === p ? "on" : ""} ${p === tgt ? "tgt" : ""}"><td>${mark}${p}</td><td>${fingerGlyph(POSE_FINGERS[p])}</td><td>${c.roman} ${c.name}</td></tr>`; }).join("");
   $("oPalm").classList.toggle("on", !live.flip); $("oBack").classList.toggle("on", live.flip);
   for (let i = 0; i < 4; i++) $("oL" + i).classList.toggle("on", live.level === i);
   $("hpLst").textContent = live.pose ? (live.flip ? "dorso" : "palma") + " · " + LEVEL_NAME[live.level] : "sin pose";
