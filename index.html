@@ -390,8 +390,8 @@ function initAudio() {
   master = ctx.createGain(); master.gain.value = 0.9;
   const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3; comp.attack.value = .003; comp.release.value = .12;
   bodyIn = ctx.createGain();
-  const hp = mk("highpass", 95, .7), air = mk("peaking", 255, 1.4, 5), wood = mk("peaking", 1150, 1.1, 2.5), lp = mk("lowpass", 6500, .5);
-  const conv = ctx.createConvolver(); conv.buffer = ir(.55); const wet = ctx.createGain(); wet.gain.value = .22;
+  const hp = mk("highpass", 95, .7), air = mk("peaking", 255, 1.4, 5), wood = mk("peaking", 1150, 1.1, 2.5), lp = mk("lowpass", 4800, .4);
+  const conv = ctx.createConvolver(); conv.buffer = ir(.45); const wet = ctx.createGain(); wet.gain.value = .12;
   bodyIn.connect(hp); hp.connect(air); air.connect(wood); wood.connect(lp); lp.connect(comp); lp.connect(conv); conv.connect(wet); wet.connect(comp);
   comp.connect(master); master.connect(ctx.destination);
   function mk(t, f, q, g) { const b = ctx.createBiquadFilter(); b.type = t; b.frequency.value = f; b.Q.value = q; if (g) b.gain.value = g; return b; }
@@ -423,6 +423,10 @@ function click(acc, when) { const o = ctx.createOscillator(), g = ctx.createGain
 
 /* ================= CANCIONES (dominio público) ================= */
 const SONGS = [
+  { title: "Cumpleaños feliz", key: "C", bpm: 100, bar: 3, cells: [
+    ["I",3,"Cumpleaños feliz,"],["V7",3,"cumpleaños feliz,"],["I",3,"te deseamos"],["I",3,"todos,"],["I",3,"cumpleaños"],["IV",3,"feliz."],["I",2,"Cumpleaños"],["V7",1,"fe-"],["I",3,"liz."] ] },
+  { title: "Happy Birthday", key: "C", bpm: 100, bar: 3, cells: [
+    ["I",3,"Happy birthday to"],["V7",3,"you, happy birthday to"],["I",3,"you, happy"],["I",3,"birthday dear"],["I",3,"(nombre), happy"],["IV",3,"birthday"],["I",2,"to"],["V7",1,""],["I",3,"you."] ] },
   { title: "Over the Rainbow (IZ)", key: "C", bpm: 84, bar: 4, cells: [
     ["I",4,"intro"],["iii",4,""],["IV",4,""],["I",4,""],["IV",4,""],["I",4,""],["V",4,""],["vi",4,""],["IV",4,""],
     ["I",4,"verso · somewhere…"],["iii",4,""],["IV",4,""],["I",4,""],["IV",4,"way up high"],["I",4,""],["V",4,""],["vi",4,""],["IV",4,""],
@@ -446,8 +450,7 @@ const SONGS = [
     ["III",4,"estribillo"],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""],
     ["i",2,"estrofa"],["VI",2,""],["VII",4,""],["v",4,""],["VI",4,""],["iv",4,""],["V!",4,""],
     ["III",4,"estribillo"],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""] ] },
-  { title: "Estrellita", key: "C", bpm: 92, bar: 4, cells: [["I",2,"Twinkle twinkle"],["I",2,""],["IV",2,"little"],["I",2,"star"],["IV",2,"how I"],["I",2,"wonder"],["V7",2,"what you"],["I",2,"are"],["I",2,"Up above the"],["IV",2,"world so"],["I",2,"high"],["V7",2,""],["I",2,"Like a diamond"],["IV",2,"in the"],["I",2,"sky"],["V7",2,""],["I",2,"Twinkle twinkle"],["I",2,""],["IV",2,"little"],["I",2,"star"],["IV",2,"how I"],["I",2,"wonder"],["V7",2,"what you"],["I",2,"are"]] },
-  { title: "Cumpleaños feliz", key: "C", bpm: 100, bar: 3, cells: [["I",3,"Happy birthday to"],["V7",3,"you, happy"],["V7",3,"birthday to"],["I",3,"you, happy"],["I",3,"birthday dear"],["IV",3,"you, happy"],["I",2,"birthday"],["V7",1,"to"],["I",3,"you"]] },
+  { title: "Estrellita", key: "C", bpm: 92, bar: 4, cells: [["I",2,"Twinkle, twinkle,"],["I",2,"little star,"],["IV",2,"how I"],["I",2,"wonder"],["IV",2,"what you"],["I",2,"are."],["V7",2,""],["I",2,""],["I",2,"Up above the"],["IV",2,"world so high,"],["I",2,"like a"],["V7",2,"diamond"],["I",2,"in the"],["IV",2,"sky."],["I",2,""],["V7",2,""],["I",2,"Twinkle, twinkle,"],["I",2,"little star,"],["IV",2,"how I"],["I",2,"wonder"],["IV",2,"what you"],["I",2,"are."],["V7",2,""],["I",2,""]] },
   { title: "Aloha ʻOe", key: "C", bpm: 84, bar: 4, cells: [["I",4,"Aloha ʻoe,"],["IV",4,"aloha ʻoe"],["I",4,"e ke onaona"],["V7",4,"noho i ka lipo"],["I",4,"One fond embrace,"],["IV",4,"a hoʻi aʻe au"],["I",2,"until we"],["V7",2,"meet"],["I",4,"again"]] },
   { title: "Oh! Susanna", key: "C", bpm: 112, bar: 4, cells: [["I",4,"I come from Alabama"],["I",4,"with my banjo on my knee"],["I",4,"I'm going to Louisiana"],["V7",4,"my true love for to see"],["I",4,"It rained all night the day I left"],["I",4,"the weather it was dry"],["I",2,"the sun so hot"],["V7",2,"I froze to death"],["I",4,"Susanna don't you cry"],["IV",4,"Oh! Susanna,"],["IV",4,"oh don't you cry for me"],["I",4,"for I come from Alabama"],["V7",4,"with my banjo on my knee"],["I",4,"Oh! Susanna,"],["I",4,"oh don't you cry for me"],["I",2,"for I come from"],["V7",2,"Alabama"],["I",4,"with my banjo on my knee"]] },
   { title: "When the Saints", key: "C", bpm: 120, bar: 4, cells: [["I",4,"Oh when the saints"],["I",4,""],["I",4,"go marching in"],["I",4,""],["I",4,"Oh when the saints go"],["I",4,"marching in"],["V7",4,""],["V7",4,""],["I",4,"Oh Lord I want to"],["I",4,"be in that number"],["IV",4,""],["IV",4,""],["I",4,"when the saints go"],["V7",4,"marching"],["I",4,"in"],["I",4,""]] },
@@ -590,7 +593,8 @@ function processHands(res, now) {
     rightVel = Math.max(.3, Math.min(1, 1.25 - y));   // mano alta = más fuerte
     rollS = null;
     const palm = d3(lm[0], lm[9]);
-    [8,12,16,20].forEach((tip, i) => { const dd = d3(lm[4], lm[tip]), close = dd < .28 * palm; if (close && !ss.pinch[i]) { pluck(i, chord.frets[i], .75, ctx.currentTime); onStrum(); } ss.pinch[i] = close ? 1 : (dd > .4 * palm ? 0 : ss.pinch[i]); });
+    const still = (ss.meter || 0) < .35, dists = [8,12,16,20].map(tip => d3(lm[4], lm[tip])), minD = Math.min(...dists);
+    [8,12,16,20].forEach((tip, i) => { const dd = dists[i], close = still && dd < .2 * palm && dd === minD && !chord.open; if (close && !ss.pinch[i]) { pluck(i, chord.frets[i], .75, ctx.currentTime); onStrum(); } ss.pinch[i] = close ? 1 : (dd > .3 * palm ? 0 : ss.pinch[i]); });
     const hb = Math.round(rightVel * 5), bars = "▮".repeat(hb) + "▯".repeat(5 - hb);
     const hit = now - (ss.flashT || 0) < 220;
     $("plateR").innerHTML = hit ? `<span style="color:var(--ink)">${ss.flashDir > 0 ? "↓" : "↑"} golpe</span>` : `tú rasgueas · fuerza <span class="num">${bars}</span>${fist ? " · puño apaga" : ""}`;
