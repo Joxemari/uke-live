@@ -119,17 +119,20 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .nextbox .v{font-size:clamp(22px,3vw,34px);color:var(--ink-92);line-height:1.05;letter-spacing:.04em;text-shadow:0 0 20px #000}
 .nextbox .v.match{color:var(--ok)}
 .nextbox .v small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-62);vertical-align:middle;margin:0 4px}
+.nextbox .v small b{font-weight:400;color:var(--ink);font-size:13px;border:1px solid var(--ink-38);padding:0 4px;margin-right:2px}
 .nextbox .v .arr{color:var(--ink-38);margin:0 6px}
 .lyr{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:min(720px,60%);text-align:center;font-size:15px;letter-spacing:.06em;color:var(--ink);text-shadow:0 0 20px #000}
 .lyr .nx{color:var(--ink-38);display:block;font-size:11px;margin-top:4px}
-.sing{position:absolute;right:12px;top:120px;bottom:150px;width:min(300px,38%);background:rgba(6,7,10,.82);border:1px solid var(--ink-16);padding:12px 14px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;gap:8px}
+.sing{position:absolute;right:16px;top:100px;bottom:120px;width:min(320px,38%);background:rgba(6,7,10,.7);backdrop-filter:blur(8px);padding:12px 14px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;gap:8px}
 .sing .lines{overflow-y:auto;scrollbar-width:thin;display:grid;gap:6px;align-content:start;font-size:13px;letter-spacing:.04em;line-height:1.4;color:var(--ink-38);mask-image:linear-gradient(180deg,#000 85%,transparent)}
-.sing .lines div{padding:3px 6px;border-left:1px solid transparent;transition:color .15s}
-.sing .lines div.past{color:var(--ink-16)}
-.sing .lines div.now{color:var(--ink);border-left-color:var(--ink);background:var(--ink-04)}
-.sing .lines div.nx{color:var(--ink-62)}
-.sing .lines .ch{font-size:9px;letter-spacing:.14em;color:var(--ink-38);display:block;text-transform:uppercase}
-.sing .lines div.now .ch{color:var(--ok)}
+
+.sing .sec{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-38);margin:10px 0 2px;border-bottom:1px solid var(--ink-16);padding-bottom:3px}
+.sing .chips{display:flex;gap:4px;flex-wrap:wrap;padding:2px 0}
+.sing .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(233,231,226,.1);background:rgba(0,0,0,.3);padding:3px 8px;font-size:12px;color:var(--ink-62);letter-spacing:.02em}
+.sing .chip b{font-weight:400;font-size:10px;color:var(--ink-38);letter-spacing:.1em}
+.sing .chip i{font-style:normal;font-size:10px;color:var(--ink-38)}
+.sing .chip.past{opacity:.4}.sing .chip.now{border-color:var(--ok);color:var(--ink);background:rgba(143,227,161,.12)}.sing .chip.now b{color:var(--ok)}
+.sing .row{display:flex;gap:10px;align-items:center;padding:3px 0}.sing .row .ly{font-size:13px;color:var(--ink-62)}.sing .row.now .ly{color:var(--ink)}.sing .row.past .ly{color:var(--ink-16)}
 @media (max-width:720px){.sing{display:none}}
 .ladder-v{position:absolute;top:12%;bottom:14%;width:1px;background:var(--ink-38);pointer-events:none}
 .ladder-v.l{left:26px}.ladder-v.r{right:26px}
@@ -271,7 +274,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
         <div class="nextbox" id="nextbox" hidden><span class="k">ahora → siguiente · qué dedos</span><span class="v num" id="nextName"></span><span id="nextGlyph"></span></div>
       </div>
       <div class="lyr" id="lyr"></div>
-      <div class="sing" id="sing" hidden><span class="k">Letra</span><div class="lines" id="singLines"></div></div>
+      <div class="sing" id="sing" hidden><span class="k">Hoja · acorde y pose</span><div class="lines" id="singLines"></div></div>
       <div class="plate">
         <div class="side"><span>L · Acordes</span><small id="plateL">—</small></div>
         <div class="beats" id="beats"></div>
@@ -584,7 +587,7 @@ function updateChordUI() {
   renderHpL();
   $("chordName").textContent = chord.name;
   $("chordHow").textContent = chord.open ? "sin pose · levanta un dedo" : chordNotes(chord);
-  $("chordSub").textContent = chord.open ? "" : `${chord.roman} · ${POSE_SHORT[live.pose]}${live.flip ? " · dorso" : ""} · ${LEVEL_NAME[live.level]} · trastes ${chord.frets.map(f => f > 9 ? "(" + f + ")" : f).join("")}`;
+  $("chordSub").textContent = chord.open ? "" : `pose 0${live.pose} · ${chord.roman} · ${POSE_SHORT[live.pose]}${live.flip ? " · dorso" : ""} · ${LEVEL_NAME[live.level]} · trastes ${chord.frets.map(f => f > 9 ? "(" + f + ")" : f).join("")}`;
   updateNextMatch();
 }
 const CONN = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
@@ -725,12 +728,20 @@ let stats = { score: 0, combo: 0, strums: 0 };
 const target = c => chordFrom(ROMAN[c.roman][0], !!ROMAN[c.roman][2], 0, !!ROMAN[c.roman][1]);
 const matches = t => !chord.open && !t.open && chord.root === t.root && chord.minor === t.minor;
 function buildTl(s) { tl = []; let b = 0; s.cells.forEach((c, i) => { tl.push({ i, roman: c[0], beats: c[1], lyric: c[2], start: b }); b += c[1]; }); return b; }
+const SECTION = /^(intro|estrofa|estribillo|vuelta|puente|final|verso|coda|entrada)\b/i;
 function renderSing() {
   const on = $("singChk").checked && playing; $("sing").hidden = !on; if (!on) return;
-  const lines = tl.filter(c => c.lyric);
-  $("singLines").innerHTML = lines.map(c => `<div data-i="${c.i}" class="${c.i < cellIdx ? "past" : c.i === cellIdx ? "now" : ""}"><span class="ch">${target(c).name}</span>${c.lyric}</div>`).join("");
-  const nowEl = $("singLines").querySelector(".now") || $("singLines").querySelector(`[data-i]`);
-  if (nowEl) { const nx = nowEl.nextElementSibling; if (nx) nx.classList.add("nx"); nowEl.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  const chip = c => { const d = ROMAN[c.roman][0], fl = ROMAN[c.roman][2]; return `<span class="chip ${c.i < cellIdx ? "past" : c.i === cellIdx ? "now" : ""}" data-i="${c.i}"><b>0${d}</b>${target(c).name}${fl ? "<i>↻</i>" : ""}</span>`; };
+  let html = "", line = [];
+  const flush = () => { if (line.length) { html += `<div class="chips">${line.join("")}</div>`; line = []; } };
+  tl.forEach(c => {
+    const isSec = SECTION.test(c.lyric || ""), hasLy = c.lyric && !isSec;
+    if (isSec) { flush(); html += `<div class="sec">${c.lyric}</div>`; }
+    if (hasLy) { flush(); html += `<div class="row ${c.i < cellIdx ? "past" : c.i === cellIdx ? "now" : ""}" data-i="${c.i}">${chip(c)}<span class="ly">${c.lyric}</span></div>`; }
+    else { line.push(chip(c)); if (line.length >= 4) flush(); }
+  });
+  flush(); $("singLines").innerHTML = html;
+  const nowEl = $("singLines").querySelector(`[data-i="${cellIdx}"]`); if (nowEl) nowEl.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 function updateNextMatch() { if (playing && cellIdx >= 0) $("nextName").classList.toggle("match", matches(target(tl[cellIdx]))); }
 function updateScore() { $("score").textContent = stats.score; $("combo").textContent = stats.combo; $("strums").textContent = stats.strums; }
@@ -745,13 +756,13 @@ function startSong() {
 }
 function onBeat(bi) {
   $("prog").style.width = Math.max(0, 100 * bi / totalBeats) + "%";
-  if (bi < 0) { $("lyr").innerHTML = `<span class="k">entrada · ${song.bar + bi}</span>`; const t0c = target(tl[0]); $("nextName").innerHTML = `prepara ${t0c.name} <small>${POSE_SHORT[ROMAN[tl[0].roman][0]]}</small>`; return; }
+  if (bi < 0) { $("lyr").innerHTML = `<span class="k">entrada · ${song.bar + bi}</span>`; const t0c = target(tl[0]); $("nextName").innerHTML = `prepara ${t0c.name} <small><b>0${ROMAN[tl[0].roman][0]}</b> · ${POSE_SHORT[ROMAN[tl[0].roman][0]]}</small>`; return; }
   const ciNow = tl.findIndex(c => bi >= c.start && bi < c.start + c.beats);
   if (ciNow !== cellIdx) {
     if (cellIdx >= 0 && cellOk[cellIdx] === undefined) cellOk[cellIdx] = false;
     cellIdx = ciNow; const cur = tl[ciNow], nx = tl[ciNow + 1];
     const tn = target(cur), tx = nx ? target(nx) : null, pn = ROMAN[cur.roman][0], px = nx ? ROMAN[nx.roman][0] : 0;
-    const hint = r => POSE_SHORT[ROMAN[r][0]] + (ROMAN[r][2] ? " · dorso" : "");
+    const hint = r => `<b>0${ROMAN[r][0]}</b> · ` + POSE_SHORT[ROMAN[r][0]] + (ROMAN[r][2] ? " · dorso" : "");
     $("nextName").innerHTML = `${tn.name} <small>${hint(cur.roman)}</small>` + (tx ? ` <span class="arr">→</span> ${tx.name} <small>${hint(nx.roman)}</small>` : "");
     $("nextGlyph").innerHTML = (tx ? fingerGlyph(POSE_FINGERS[px]) : ""); renderHpL();
     $("lyr").innerHTML = `${cur.lyric || "&nbsp;"}<span class="nx">${nx && nx.lyric ? nx.lyric : ""}</span>`;
