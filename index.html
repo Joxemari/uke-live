@@ -515,7 +515,7 @@ function initAudio() {
   // --- envíos
   ENG.reverbDuck = mkGain(1); ENG.reverbDuck.connect(ENG.masterIn);
   ENG.reverbReturn = mkGain(.9); ENG.reverbReturn.connect(ENG.reverbDuck);
-  ENG.reverb = ctx.createConvolver(); ENG.reverb.buffer = ir(4.5, .02); ENG.reverb.connect(ENG.reverbReturn);
+  ENG.reverb = ctx.createConvolver(); ENG.reverb.buffer = ir((navigator.hardwareConcurrency || 8) <= 4 ? 3 : 4.5, .02); ENG.reverb.connect(ENG.reverbReturn);
   ENG.delayReturn = mkGain(.8); ENG.delayReturn.connect(ENG.reverbDuck);
   ENG.delay = ctx.createDelay(2); ENG.delayFb = mkGain(.45); ENG.delay.connect(ENG.delayFb); ENG.delayFb.connect(ENG.delay); ENG.delay.connect(ENG.delayReturn); ENG.delayIn = mkGain(1); ENG.delayIn.connect(ENG.delay);
   // --- canales
@@ -528,7 +528,7 @@ function initAudio() {
   // percusión (txalaparta) y compat
   master = ENG.ch.drums.input; percIn = master;
   analyser = ctx.createAnalyser(); analyser.fftSize = 1024; ENG.clip.connect(analyser); waveBuf = new Uint8Array(analyser.fftSize);
-  fx = true; ENG.ready = true; setDelayTime(); if (inst === "uke") { ENG.ch.chords.sendD.gain.value = 0; ENG.ch.chords.sendR.gain.value = .22; }
+  fx = true; ENG.ready = true; setDelayTime(); if (inst === "uke") { ENG.ch.chords.sendD.gain.value = 0; ENG.ch.chords.sendR.gain.value = .22; ENG.ch.chords.carve.frequency.value = 90; }
 }
 function setDelayTime() { if (!ENG.ready) return; ENG.delay.delayTime.setTargetAtTime((60 / T.bpm) * .75, ctx.currentTime, .05); }
 // --- side-chain del bombo
@@ -750,7 +750,7 @@ const d3 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, (a.z - b.z) * .6);
 const fingerState = { L: [0,0,0,0,0], R: [0,0,0,0,0] };
 const ang = (a, b, c) => { const v1 = { x: a.x - b.x, y: a.y - b.y, z: (a.z - b.z) * .6 }, v2 = { x: c.x - b.x, y: c.y - b.y, z: (c.z - b.z) * .6 };
   const d = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z, n = Math.hypot(v1.x, v1.y, v1.z) * Math.hypot(v2.x, v2.y, v2.z); return Math.acos(Math.max(-1, Math.min(1, d / (n || 1)))) * 180 / Math.PI; };
-function extended(lm, role = "L") {
+function extended(lm, role = "L", wl = null) {
   const w = lm[0], palm = d3(w, lm[9]), st = fingerState[role];
   // dedos 1-4: recto si el ángulo en la articulación media es casi 180° y la punta queda más lejos de la muñeca que el nudillo medio
   [[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]].forEach(([m, pip, dip, tip], i) => {
@@ -759,7 +759,10 @@ function extended(lm, role = "L") {
   // pulgar: abierto si su punta queda claramente más lejos del nudillo del meñique que el nudillo del índice,
   // o claramente separada del nudillo del índice (con histéresis)
   const width = Math.max(1e-4, d3(lm[5], lm[17])), spread = d3(lm[4], lm[17]) / width, away = d3(lm[4], lm[5]) / palm;
-  if (spread > 1.28 || away > .72) st[0] = 1; else if (spread < 1.1 && away < .5) st[0] = 0;
+  // además, como gesture.live: proyección de la punta del pulgar sobre el eje meñique→índice (en 3D si hay mundo) · fuera si pasa del nudillo del índice en más de .45 del ancho (se mantiene hasta .25)
+  const P = wl || lm, e = P[5], i = P[17], sx = e.x - i.x, sy = e.y - i.y, sz = (e.z || 0) - (i.z || 0), L2 = Math.max(sx * sx + sy * sy + sz * sz, 1e-9), proj = ((P[4].x - e.x) * sx + (P[4].y - e.y) * sy + ((P[4].z || 0) - (e.z || 0)) * sz) / L2;
+  const outA = spread > 1.28 || away > .72, inA = spread < 1.1 && away < .5, outB = proj > .45, inB = proj < .25;
+  if (outA || outB) st[0] = 1; else if (inA && inB) st[0] = 0;
   return st.slice();
 }
 function palmSign(lm) { const a = { x: lm[5].x - lm[0].x, y: lm[5].y - lm[0].y }, b = { x: lm[17].x - lm[0].x, y: lm[17].y - lm[0].y }; return a.x * b.y - a.y * b.x; }
@@ -788,7 +791,7 @@ function processHands(res, now) {
     ukeLost = null; handPos.L = ch.lm; if (!ukeFist) { ukeFist = true; muteAll(); } if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } poseHist = [];
     $("plateL").textContent = "puño · cuerdas apagadas"; $("hpL").hidden = !helpOn; $("ladL").hidden = false; setLadder("ladL", HL.palm.y, "PUÑO");
   } else if (ch) { ukeFist = false; ukeLost = null;
-    const e = extended(ch.lm, "L"), p = poseOf(e); const flip = flipOn && HL.palmAway;
+    const e = extended(ch.lm, "L", ch.wl), p = poseOf(e); const flip = flipOn && HL.palmAway;
     handY = handY === null ? ch.lm[9].y : handY * .7 + ch.lm[9].y * .3;
     const hy = handY, TH = [.58, .40, .24], HYS = .035; let lvl = live.level;
     // histéresis: para subir de nivel hay que cruzar la línea con margen; para bajar, igual
@@ -1107,7 +1110,7 @@ let inst = "uke", synthMode = "melody";
 const INST_HINT = { uke: "cuerda · izquierda el acorde (altura = voicing, giro = ritmo), derecha el rasgueo", synth: "síntesis · izquierda el acorde (altura = spice, giro = filtro) · derecha: batería, bajo, melodía, fx y sculpt", txala: "percusión · dos manos, dos makilak · golpe seco hacia abajo · la zona elige la tabla" };
 let hpRUke = null;
 function setInst(k) { LESSONS = LESSON_SETS[k]; li = 0; inst = k; renderGsheet(); if ($("landing") && !$("landing").hidden) renderLesson(); setTimeout(setBeats, 0); document.querySelector(".center").style.visibility = k === "txala" ? "hidden" : "visible"; if (!hpRUke) hpRUke = $("hpR").innerHTML; if (k === "uke") $("hpR").innerHTML = hpRUke; inst = k; if (!$("perf").hidden) renderSing(); $("plateRName").textContent = k === "uke" ? "R · Rasgueo" : k === "synth" ? "R · Modo" : "Eskuina"; $("plateLName").textContent = k === "txala" ? "Ezkerra" : k === "synth" ? "L · Pad" : "L · Acordes"; document.querySelectorAll("#instSel button").forEach(b => b.setAttribute("aria-pressed", b.dataset.i === k)); $("instHint").textContent = INST_HINT[k]; $("instBar").value = k; $("modeFld").hidden = k !== "synth"; $("modeBig").hidden = k !== "synth"; if (k === "synth") { setSynthMode(synthMode); if (T.bpm === 90) { T.bpm = 112; $("tempo").value = 112; $("tempoVal").textContent = 112; } } $("plankFld").hidden = k !== "txala"; $("ukeSoundFld").hidden = k !== "uke"; $("voiceFld").hidden = k !== "synth"; $("snapFld").hidden = k !== "synth"; $("recBtn").hidden = false;
-  if (ctx) { padStop(); leadOff(); arc = null; RC.menu.open = false; if (ENG.ready) { clearFx(); ENG.ch.chords.sendD.gain.setTargetAtTime(k === "uke" ? 0 : .14, ctx.currentTime, .05); ENG.ch.chords.sendR.gain.setTargetAtTime(k === "uke" ? .22 : .3, ctx.currentTime, .05); } } document.body.dataset.inst = k; if (!$("perf").hidden) { renderHpL(); }
+  if (ctx) { padStop(); leadOff(); arc = null; RC.menu.open = false; if (ENG.ready) { clearFx(); ENG.ch.chords.sendD.gain.setTargetAtTime(k === "uke" ? 0 : .14, ctx.currentTime, .05); ENG.ch.chords.sendR.gain.setTargetAtTime(k === "uke" ? .22 : .3, ctx.currentTime, .05); ENG.ch.chords.carve.frequency.setTargetAtTime(k === "uke" ? 90 : 160, ctx.currentTime, .05); } } document.body.dataset.inst = k; if (!$("perf").hidden) { renderHpL(); }
   // panel izquierdo según instrumento
   $("hpL").querySelector(".h span").textContent = k === "synth" ? "L / Pad" : "L / Acordes";
   $("hpRollK").textContent = k === "synth" ? "Giro · recta = medio · a la derecha abre el filtro · a la izquierda lo cierra · puño = silencio" : "Giro · recta = patrón · a la derecha = corcheas · a la izquierda = negras · puño = apaga";
@@ -1436,7 +1439,7 @@ function analyzeHand(role, lm, wl, now) {
   const roll = Math.atan2((mid.x - w.x) * asp, -(mid.y - w.y)), q = Math.abs(roll); st.lastRoll = roll; st.fingersDown = st.fingersDown ? q > 1.45 : q > 1.95;
   // temblor vertical (vibrato)
   st.yHist.push({ y: g.y, t: now }); while (st.yHist.length && now - st.yHist[0].t > 250) st.yHist.shift(); let shake = 0; if (st.yHist.length >= 6) { const m = st.yHist.reduce((a, b) => a + b.y, 0) / st.yHist.length; let e = 0; st.yHist.forEach(h => e += Math.abs(h.y - m)); e /= st.yHist.length; shake = Math.min(1, Math.max(0, (e / scale - .03) * 12)); }
-  return { role, lm, r, palm, vel, speed, scale, pinch, pinchStarted: started, pinchAmount: amount, anyPinch, ext, thumbRising, n, stableN: st.stableN, isFist: st.isFist, isOpen, palmAway: st.palmAway, palmAwayFirm: st.palmAway && X > -.4, roll, fingersDown: st.fingersDown, shake, X };
+  return { role, lm, wl, r, palm, vel, speed, scale, pinch, pinchStarted: started, pinchAmount: amount, anyPinch, ext, thumbRising, n, stableN: st.stableN, isFist: st.isFist, isOpen, palmAway: st.palmAway, palmAwayFirm: st.palmAway && X > -.4, roll, fingersDown: st.fingersDown, shake, X };
 }
 function resetHand(role) { const keep = GEST[role].pinch; GEST[role] = handState(); GEST[role].pinch = keep; }
 // mapas de gesture.live: altura R(y) · alcance M(x) · giro P (0..1, vertical = .5) · giro k (−1..1)
@@ -1492,7 +1495,7 @@ function chordHand(h, now) {
   LC.lostSince = null; handPos.L = h.lm;
   if (h.isFist) { if (!LC.wasFist) { LC.wasFist = true; padChoke(); live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); LC.candidate = null; LC.committed = null; } $("plateL").textContent = "puño · silencio"; return; }
   LC.wasFist = false;
-  const e = extended(h.lm, "L"), p = poseOf(e); let flip = flipOn && h.palmAway; const down = h.fingersDown;
+  const e = extended(h.lm, "L", h.wl), p = poseOf(e); let flip = flipOn && h.palmAway; const down = h.fingersDown;
   const lvl = LC.spiceLane.update(mapH(h.palm.y), now);
   poseHist.push(p * 4 + (flip ? 1 : 0) + (down ? 2 : 0)); if (poseHist.length > 7) poseHist.shift();
   const cnt = {}; let best = null, bestN = 0; poseHist.forEach(v => { cnt[v] = (cnt[v] || 0) + 1; if (cnt[v] > bestN) { bestN = cnt[v]; best = v; } });
@@ -1607,7 +1610,7 @@ function processTxala(hands, now) {
       const plank = Math.min(PLANKS.length - 1, Math.max(0, Math.floor((1 - tip.x) * PLANKS.length)));
       // golpe = bajada rápida que empieza a frenar (pico de velocidad), a cualquier altura
       // golpe en el primer cuadro de bajada rápida (sin esperar al pico) · se rearma en cuanto la mano deja de bajar
-      if (st.armed && vy > .8) { plankHit(plank, ctx.currentTime, Math.min(1, .45 + vy / 4)); st.armed = false; st.lastHit = now; txalaCount[k]++; flashes.push({ x: tip.x, y: tip.y, t: performance.now(), down: true }); st.lastPlank = plank; }
+      if (st.armed && vy > .7) { plankHit(plank, ctx.currentTime, Math.min(1, .45 + vy / 4)); st.armed = false; st.lastHit = now; txalaCount[k]++; flashes.push({ x: tip.x, y: tip.y, t: performance.now(), down: true }); st.lastPlank = plank; }
       if (vy < .15 || (now - (st.lastHit || 0) > 170 && vy < .5)) st.armed = true; }
     st.y = y; st.t = now; st.tip = tip;
   });
@@ -1652,7 +1655,7 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-window.__uke = { processHands, draw, extended, analyzeHand, get analyser() { return analyser; }, padSet, leadOn, leadOff, drumHit, bassNote, get ctx() { return ctx; }, get samplesReady() { return samplesReady; }, SAMPLES, get arc() { return arc; }, get synthMode() { return synthMode; }, get lead() { return lead; }, SY, RC, GEST, ENG, get pad() { return pad; }, get rPinch() { return rPinch; }, get pinchInfo() { return pinchInfo; }, get state() { return { live, chord, density, rightVel, playing, T, slots: slotsNow(), rollL, rollVal, rollDbg }; }, startTransport, initAudio: () => { initAudio(); }, countPlucks: 0 };
+window.__uke = { processHands, draw, extended, poseOf, analyzeHand, get analyser() { return analyser; }, padSet, leadOn, leadOff, drumHit, bassNote, get ctx() { return ctx; }, get samplesReady() { return samplesReady; }, SAMPLES, get arc() { return arc; }, get synthMode() { return synthMode; }, get lead() { return lead; }, SY, RC, GEST, ENG, get pad() { return pad; }, get rPinch() { return rPinch; }, get pinchInfo() { return pinchInfo; }, get state() { return { live, chord, density, rightVel, playing, T, slots: slotsNow(), rollL, rollVal, rollDbg }; }, startTransport, initAudio: () => { initAudio(); }, countPlucks: 0 };
 const _pluck = pluck; pluck = (...a) => { window.__uke.countPlucks++; return _pluck(...a); };
 /* ================= TOMA (grabación en el navegador) ================= */
 let rec = null, recChunks = [], recCanvas = null, recRaf = null, recDest = null;
