@@ -126,7 +126,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .nextbox .v .arr{color:var(--ink-38);margin:0 6px}
 .lyr{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:min(720px,60%);text-align:center;font-size:15px;letter-spacing:.06em;color:var(--ink);text-shadow:0 0 20px #000}
 .lyr .nx{color:var(--ink-38);display:block;font-size:11px;margin-top:4px}
-.sing{position:absolute;right:16px;top:100px;bottom:120px;width:min(320px,38%);background:rgba(6,7,10,.7);backdrop-filter:blur(8px);padding:12px 14px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;gap:8px}
+.sing{position:absolute;right:16px;top:100px;bottom:120px;width:min(320px,38%);background:rgba(6,7,10,.7);backdrop-filter:blur(8px);padding:12px 14px;overflow:hidden;display:grid;grid-template-rows:auto auto 1fr;gap:8px}
 .sing .lines{overflow-y:auto;scrollbar-width:thin;display:grid;gap:6px;align-content:start;font-size:13px;letter-spacing:.04em;line-height:1.4;color:var(--ink-38);mask-image:linear-gradient(180deg,#000 85%,transparent)}
 
 .sing .sec{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-38);margin:10px 0 2px;border-bottom:1px solid var(--ink-16);padding-bottom:3px}
@@ -271,7 +271,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
         <div class="sec"><span class="k2">Puño en movimiento</span><span class="opt" id="oFist">× apaga</span></div>
         <div class="sec"><span class="k2">Pinza pulgar + dedo → cuerda</span><div class="opts"><span class="opt" id="oP0">índice G</span><span class="opt" id="oP1">corazón C</span><span class="opt" id="oP2">anular E</span><span class="opt" id="oP3">meñique A</span></div></div>
       </aside>
-      <div class="tr"><span class="k" id="trInfo"></span><button id="exit">▲ Salir</button><button id="help" aria-pressed="true">Ayuda · on</button><button id="metro" aria-pressed="true">Metrónomo · on</button></div>
+      <div class="tr"><span class="k" id="trInfo"></span><button id="exit">▲ Salir</button><button id="help" aria-pressed="true">Ayuda · on</button><button id="metro" aria-pressed="false">Metrónomo · off</button></div>
       <div class="brand">uke.live</div>
       <div class="center">
         <div class="strip k" id="strip2"></div>
@@ -281,7 +281,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
         <div class="nextbox" id="nextbox" hidden><span class="k">ahora → siguiente · qué dedos</span><span class="v num" id="nextName"></span><span id="nextGlyph"></span></div>
       </div>
       <div class="lyr" id="lyr"></div>
-      <div class="sing" id="sing" hidden><span class="k">Hoja · acorde y pose</span><div class="lines" id="singLines"></div></div>
+      <div class="sing" id="sing" hidden><span class="k">Hoja · acorde y pose<span id="singTitle"></span></span><div class="k" id="singNote" style="color:var(--ink-62);text-transform:none;letter-spacing:.04em;font-size:11px"></div><div class="lines" id="singLines"></div></div>
       <div class="plate">
         <div class="side"><span>L · Acordes</span><small id="plateL">—</small></div>
         <div class="beats" id="beats"></div>
@@ -594,7 +594,7 @@ function processHands(res, now) {
     const hb = Math.round(rightVel * 5), bars = "▮".repeat(hb) + "▯".repeat(5 - hb);
     const hit = now - (ss.flashT || 0) < 220;
     $("plateR").innerHTML = hit ? `<span style="color:var(--ink)">${ss.flashDir > 0 ? "↓" : "↑"} golpe</span>` : `tú rasgueas · fuerza <span class="num">${bars}</span>${fist ? " · puño apaga" : ""}`;
-    handPos.R = lm; renderHpR(fist); $("hpR").hidden = !helpOn || (playing && $("singChk").checked); $("ladR").hidden = false; setLadder("ladR", y, DENS_NAME[density].toUpperCase() + " · " + Math.round(rightVel * 100));
+    handPos.R = lm; renderHpR(fist); $("hpR").hidden = !helpOn || !$("sing").hidden; $("ladR").hidden = false; setLadder("ladR", y, DENS_NAME[density].toUpperCase() + " · " + Math.round(rightVel * 100));
   } else { handPos.R = null; $("hpR").hidden = true; $("ladR").hidden = true; ss.y = null; ss.v = undefined; ss.armed = true; rightVel = .65; rollS = null; $("plateR").textContent = "fuera · el patrón toca por ti"; renderHpR(false); }
 }
 let flashes = [];
@@ -702,14 +702,13 @@ let lastAutoStrum = 0, rollL = null, handY = null;
 let wMax = { L: 0, R: 0 }, rollDbg = null;
 function rollOf(lm, role = "L") {
   const w = Math.hypot(lm[17].x - lm[5].x, lm[17].y - lm[5].y) / Math.max(1e-4, Math.hypot(lm[9].x - lm[0].x, lm[9].y - lm[0].y));
-  wMax[role] = Math.max(wMax[role] * .9995, w);                       // anchura de palma plana: la mayor vista (se recalibra sola)
-  const byWidth = wMax[role] > 0 ? Math.max(0, Math.min(1, (1 - w / wMax[role]) / .55)) : 0;
-  const dz = Math.abs(lm[17].z - lm[5].z), dxy = Math.max(1e-4, Math.hypot(lm[17].x - lm[5].x, lm[17].y - lm[5].y));
-  const byDepth = Math.max(0, Math.min(1, Math.atan2(dz, dxy) / 1.0));  // ~57° de giro = 1
-  rollDbg = { role, w: +w.toFixed(3), wMax: +wMax[role].toFixed(3), byWidth: +byWidth.toFixed(2), dz: +dz.toFixed(3), dxy: +dxy.toFixed(3), byDepth: +byDepth.toFixed(2) };
-  return Math.max(byWidth * .8, byDepth);
+  if (w > 0.5 && w < 1.35) wMax[role] = Math.max(wMax[role] * .997, w);   // palma plana: la mayor anchura plausible vista; olvida en ~10 s
+  const ref = Math.min(1.3, Math.max(0.9, wMax[role] || 1.05));
+  const r = Math.max(0, Math.min(1, (ref - w) / (ref * .5)));             // 0 plana · 1 de canto (anchura a la mitad)
+  rollDbg = { role, w: +w.toFixed(3), ref: +ref.toFixed(3), r: +r.toFixed(2) };
+  return r;
 }
-function applyRoll(r) { rollVal = r; let d = r > .55 ? 3 : r < .4 ? 2 : (density === 3 ? 3 : 2); if (d !== density) { density = d; setBeats(); } }
+function applyRoll(r) { rollVal = r; let d = r > .6 ? 3 : r < .45 ? 2 : (density === 3 ? 3 : 2); if (d !== density) { density = d; setBeats(); } }
 let density = 2, rollS = null, rollVal = 0, handPos = { L: null, R: null };      // 0 escaso · 1 negras · 2 patrón · 3 corcheas  (giro de muñeca)
 const DENS_NAME = ["escaso", "negras", "patrón", "corcheas"];
 function slotsNow() { const base = pat().slots, n = base.length; if (patKey === "manual") return base;
@@ -738,7 +737,7 @@ function startTransport() {
         if (slot % 2 === 0) onStrum();
       }
       setTimeout(() => onSlot(slot), Math.max(0, (when - ctx.currentTime) * 1000));
-      if (playing && slot % 2 === 0) { const bi = songBeat + 1; songBeat = bi; if (bi >= totalBeats) { setTimeout(finish, Math.max(0, (when - ctx.currentTime) * 1000)); } else setTimeout(() => onBeat(bi), Math.max(0, (when - ctx.currentTime) * 1000)); }
+      if (playing && slot % 2 === 0) { const bi = songBeat + 1; songBeat = bi; if (bi < 0 && !metroOn) click(bi === -song.bar, when); if (bi >= totalBeats) { setTimeout(finish, Math.max(0, (when - ctx.currentTime) * 1000)); } else setTimeout(() => onBeat(bi), Math.max(0, (when - ctx.currentTime) * 1000)); }
     }
   }, 25);
 }
@@ -751,7 +750,7 @@ function onSlot(slot) { const d = $("beats").children; for (let i = 0; i < d.len
 function setPattern(k) { patKey = k; $("pattern").value = k; setBeats(); T.slot = -1; }
 
 /* ================= CANCIÓN ================= */
-let song = null, tl = [], playing = false, songBeat = -1, cellIdx = -1, hits = 0, total = 0, cellOk = [], metroOn = true, totalBeats = 0;
+let song = null, tl = [], playing = false, songBeat = -1, cellIdx = -1, hits = 0, total = 0, cellOk = [], metroOn = false, totalBeats = 0;
 let stats = { score: 0, combo: 0, strums: 0 };
 const target = c => chordFrom(ROMAN[c.roman][0], !!ROMAN[c.roman][2], 0, !!ROMAN[c.roman][1]);
 const matches = t => !chord.open && !t.open && chord.root === t.root && chord.minor === t.minor;
@@ -764,7 +763,10 @@ function buildTl(s) {
 }
 const SECTION = SECTION_RX;
 function renderSing() {
-  const on = $("singChk").checked && playing; $("sing").hidden = !on; if (!on) return;
+  const on = $("singChk").checked && !$("perf").hidden; $("sing").hidden = !on; if (!on) return;
+  if (!playing) { const sg = SONGS[$("song").value]; const sk = key, ss2 = scaleKey; key = KEYS.indexOf(sg.key); scaleKey = sg.scale || "major"; buildTl(sg); key = sk; scaleKey = ss2; }
+  const own = customLyrics(SONGS[$("song").value]), hasLyrics = tl.some(c => c.lyric && !c.sec);
+  $("singNote").textContent = hasLyrics ? (playing ? "" : "pulsa Tocar · la línea actual se marca en verde") : "sin letra por derechos · pulsa Letra propia y pégala";
   const chip = c => { const d = ROMAN[c.roman][0], fl = ROMAN[c.roman][2]; return `<span class="chip ${c.i < cellIdx ? "past" : c.i === cellIdx ? "now" : ""}" data-i="${c.i}"><b>0${d}</b>${target(c).name}${fl ? "<i>↻</i>" : ""}</span>`; };
   let html = "", line = [];
   const flush = () => { if (line.length) { html += `<div class="chips">${line.join("")}</div>`; line = []; } };
@@ -814,7 +816,7 @@ function finish() {
   $("sumScore").textContent = stats.score; $("sumText").textContent = `Acorde correcto en el ${pct}% de los pulsos · ${stats.strums} rasgueos a tiempo. ${pct >= 85 ? "Eso ya es tocar." : pct >= 60 ? "Va saliendo: prepara el acorde siguiente un pulso antes." : "Baja el tempo y repite; el cambio se prepara antes de que llegue."}`;
   $("strip").innerHTML = cellOk.map(v => `<i class="${v === true ? "ok" : v === false ? "miss" : ""}"></i>`).join(""); $("summary").hidden = false;
 }
-function stopSong() { playing = false; setTimeout(renderHpL, 0); $("sing").hidden = true; cellIdx = -1; $("nextbox").hidden = true; $("songLbl").textContent = "Modo libre"; $("play").textContent = "▶ Tocar"; $("lyr").textContent = ""; $("prog").style.width = "0"; }
+function stopSong() { playing = false; setTimeout(renderHpL, 0); setTimeout(renderSing, 0); cellIdx = -1; $("nextbox").hidden = true; $("songLbl").textContent = "Modo libre"; $("play").textContent = "▶ Tocar"; $("lyr").textContent = ""; $("prog").style.width = "0"; }
 
 /* ================= ARRANQUE ================= */
 let landmarker = null, lastVT = -1, t0 = 0;
@@ -829,7 +831,7 @@ async function start() {
     $("diag").textContent = "pidiendo cámara…";
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
     video.srcObject = stream; await video.play(); canvas.width = video.videoWidth || 1280; canvas.height = video.videoHeight || 720;
-    $("landing").hidden = true; $("perf").hidden = false; $("diag").textContent = ""; t0 = performance.now(); renderCoach(); setBeats(); startTransport(); renderHpL(); requestAnimationFrame(loop);
+    $("landing").hidden = true; $("perf").hidden = false; $("diag").textContent = ""; t0 = performance.now(); renderCoach(); setBeats(); startTransport(); renderHpL(); renderSing(); requestAnimationFrame(loop);
   } catch (e) {
     btn.disabled = false; console.error(e); $("diag").textContent = "";
     $("fail").textContent = e.name === "NotAllowedError" ? "Cámara bloqueada: permítela desde el icono de la barra de direcciones y vuelve a pulsar."
@@ -865,13 +867,13 @@ $("tempo").oninput = e => { $("tempoVal").textContent = e.target.value; T.bpm = 
 $("pattern").innerHTML = Object.entries(PATTERNS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
 $("pattern").onchange = e => setPattern(e.target.value);
 $("song").innerHTML = SONGS.map((s, i) => `<option value="${i}">${s.title}</option>`).join("");
-$("song").onchange = () => { const s = SONGS[$("song").value]; $("tempo").value = s.bpm; $("tempoVal").textContent = s.bpm; T.bpm = s.bpm; };
+$("song").onchange = () => { const s = SONGS[$("song").value]; $("tempo").value = s.bpm; $("tempoVal").textContent = s.bpm; T.bpm = s.bpm; if (!playing) renderSing(); };
 $("play").onclick = () => playing ? stopSong() : startSong();
 $("lyrBtn").onclick = () => { const sg = SONGS[$("song").value]; $("lyrEdTitle").textContent = sg.title; const own = customLyrics(sg) || [];
   $("lyrText").value = own.join("\n"); const saveKey = key, saveScale = scaleKey; key = KEYS.indexOf(sg.key); scaleKey = sg.scale || "major";
   let n = 0; $("lyrChords").innerHTML = sg.cells.map(c => SECTION_RX.test(c[2] || "") ? `<div class="s">— ${c[2]}</div>` : `<div>${++n}. ${chordFrom(ROMAN[c[0]][0], !!ROMAN[c[0]][2], 0, !!ROMAN[c[0]][1]).name}</div>`).join("");
   key = saveKey; scaleKey = saveScale; $("lyrEd").hidden = false; };
-$("lyrSave").onclick = () => { const sg = SONGS[$("song").value]; const lines = $("lyrText").value.split("\n").map(l => l.trim()); try { localStorage.setItem("uke.lyr." + sg.title, JSON.stringify(lines)); } catch (e) {} $("lyrEd").hidden = true; if (playing) { buildTl(sg); renderSing(); } };
+$("lyrSave").onclick = () => { const sg = SONGS[$("song").value]; const lines = $("lyrText").value.split("\n").map(l => l.trim()); try { localStorage.setItem("uke.lyr." + sg.title, JSON.stringify(lines)); } catch (e) {} $("lyrEd").hidden = true; if (playing) buildTl(sg); renderSing(); };
 $("lyrClear").onclick = () => { const sg = SONGS[$("song").value]; try { localStorage.removeItem("uke.lyr." + sg.title); } catch (e) {} $("lyrText").value = ""; };
 $("lyrClose").onclick = () => $("lyrEd").hidden = true;
 $("singChk").onchange = renderSing;
