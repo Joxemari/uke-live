@@ -112,6 +112,8 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .nextbox{margin-top:10px;display:grid;justify-items:center;gap:2px}
 .nextbox .v{font-size:clamp(22px,3vw,34px);color:var(--ink-92);line-height:1.05;letter-spacing:.04em;text-shadow:0 0 20px #000}
 .nextbox .v.match{color:var(--ok)}
+.nextbox .v small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-62);vertical-align:middle;margin:0 4px}
+.nextbox .v .arr{color:var(--ink-38);margin:0 6px}
 .lyr{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:min(720px,60%);text-align:center;font-size:15px;letter-spacing:.06em;color:var(--ink);text-shadow:0 0 20px #000}
 .lyr .nx{color:var(--ink-38);display:block;font-size:11px;margin-top:4px}
 .sing{position:absolute;right:12px;top:120px;bottom:150px;width:min(300px,38%);background:rgba(6,7,10,.82);border:1px solid var(--ink-16);padding:12px 14px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;gap:8px}
@@ -134,7 +136,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .ladder-v .mk span{position:absolute;left:26px;top:-5px;font-size:10px;letter-spacing:.16em;color:var(--ink);white-space:nowrap;text-shadow:0 0 6px #000}
 .ladder-v.r .mk{left:auto;right:-9px}.ladder-v.r .mk span{left:auto;right:26px}
 .hp{position:absolute;top:84px;width:244px;background:rgba(6,7,10,.42);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:12px 14px 14px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-62);display:grid;gap:12px;max-height:calc(100% - 240px);overflow:hidden}
-.hp.l{left:52px}.hp.r{right:52px;text-align:right}
+.hp.l{left:110px}.hp.r{right:110px;text-align:right}
 .hp .h{display:grid;gap:3px;white-space:nowrap}
 .hp .h span{color:var(--ink);font-size:12px;letter-spacing:.16em}
 .hp .h small{font-size:9px;color:var(--ink-38);letter-spacing:.18em}
@@ -222,13 +224,13 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
     <div class="ovl">
       <div class="tl"><span class="k">Canción</span><span class="v" id="songLbl">Modo libre</span></div>
       <div class="coach" id="coach"><div class="hand" id="coachHand"></div><div><div class="t1" id="coachT1"></div><div class="t2" id="coachT2"></div><div class="steps" id="coachSteps"></div></div><button class="skip" id="skip">Saltar</button></div>
-      <div class="ladder-v l" id="ladL" hidden><span class="t">altura · voicing</span><i style="top:21%"></i><i style="top:42%"></i><i style="top:65%"></i><div class="mk"><span>TRIADA</span></div></div>
+      <div class="ladder-v l" id="ladL" hidden><span class="t">altura · voicing</span><i style="top:21%"></i><i style="top:42%"></i><i style="top:65%"></i><div class="mk"><span>BÁSICO</span></div></div>
       <div class="ladder-v r" id="ladR" hidden><span class="t">altura · fuerza</span><div class="mk"><span>PATRÓN</span></div></div>
       <aside class="hp l" id="hpL" hidden>
         <div class="h"><span>L / Acordes</span><small id="hpLst">palma</small><button class="x" data-hp="hpL">cerrar</button></div>
         <table id="hpTable"></table>
         <div class="sec"><span class="k2">Calidad · gira la mano</span><div class="opts"><span class="opt" id="oPalm">palma · mayor</span><span class="opt" id="oBack">dorso · menor</span></div></div>
-        <div class="sec"><span class="k2">Altura · sube la mano</span><div class="opts"><span class="opt" id="oL0">triada</span><span class="opt" id="oL1">7ª</span><span class="opt" id="oL2">agudo</span><span class="opt" id="oL3">8va</span></div></div>
+        <div class="sec"><span class="k2">Altura · sube la mano</span><div class="opts"><span class="opt" id="oL0">básico</span><span class="opt" id="oL1">séptima</span><span class="opt" id="oL2">agudo</span><span class="opt" id="oL3">muy agudo</span></div></div>
       </aside>
       <aside class="hp r" id="hpR" hidden>
         <div class="h"><span>R / Ritmo</span><small id="hpRst">la mano del ritmo</small><button class="x" data-hp="hpR">cerrar</button></div>
@@ -238,14 +240,14 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
         <div class="sec"><span class="k2">Puño en movimiento</span><span class="opt" id="oFist">× apaga</span></div>
         <div class="sec"><span class="k2">Pinza pulgar + dedo → cuerda</span><div class="opts"><span class="opt" id="oP0">índice G</span><span class="opt" id="oP1">corazón C</span><span class="opt" id="oP2">anular E</span><span class="opt" id="oP3">meñique A</span></div></div>
       </aside>
-      <div class="tr"><span class="k" id="trInfo"></span><button id="exit">▲ Salir</button><button id="help" aria-pressed="true">Ayuda · on</button><button id="metro" aria-pressed="true">Clic · on</button></div>
+      <div class="tr"><span class="k" id="trInfo"></span><button id="exit">▲ Salir</button><button id="help" aria-pressed="true">Ayuda · on</button><button id="metro" aria-pressed="true">Metrónomo · on</button></div>
       <div class="brand">uke.live</div>
       <div class="center">
         <div class="strip k" id="strip2"></div>
         <div class="chordbig num" id="chordName">—</div>
         <div class="notes num" id="chordHow">sin pose · levanta un dedo</div>
         <div class="sub k" id="chordSub"></div>
-        <div class="nextbox" id="nextbox" hidden><span class="k">ahora → siguiente</span><span class="v num" id="nextName"></span></div>
+        <div class="nextbox" id="nextbox" hidden><span class="k">ahora → siguiente · qué dedos</span><span class="v num" id="nextName"></span><span id="nextGlyph"></span></div>
       </div>
       <div class="lyr" id="lyr"></div>
       <div class="sing" id="sing" hidden><span class="k">Letra</span><div class="lines" id="singLines"></div></div>
@@ -308,7 +310,7 @@ const ROM = ["I","II","III","IV","V","VI","VII"];
 const POSE_HELP = [null,"un dedo · la primera","dos dedos · la segunda","tres dedos · la tercera","cuatro dedos · la cuarta","mano abierta · la quinta","cuernos · la sexta","cuernos y pulgar · la séptima"];
 const POSE_SHORT = [null,"1 dedo","2 dedos","3 dedos","4 dedos","abierta","cuernos","cuernos+pulgar"];
 const POSE_FINGERS = [null,[0,1,0,0,0],[0,1,1,0,0],[0,1,1,1,0],[0,1,1,1,1],[1,1,1,1,1],[0,1,0,0,1],[1,1,0,0,1]];
-const LEVEL_NAME = ["triada", "séptima", "agudo", "octava"];
+const LEVEL_NAME = ["básico", "con séptima", "agudo", "muy agudo"];
 // acorde diatónico del grado d (1..7) de la escala actual, por terceras apiladas
 function diatonic(d) {
   const sc = SCALE(), at = i => sc[(d - 1 + i) % 7] + 12 * Math.floor((d - 1 + i) / 7);
@@ -426,7 +428,7 @@ function fingerGlyph(f) { return `<span style="display:inline-flex;gap:1px;align
 const LESSONS = [
   { h: "Mano izquierda · cuenta el acorde", pose: 4, cap: "cuatro dedos · la cuarta", table: true },
   { h: "Mano izquierda · gírala", pose: 1, flip: true, cap: "dorso a la cámara · pasa a menor", plays: "Cm", table: true },
-  { h: "Mano izquierda · levántala", pose: 5, cap: "baja triada · media séptima · alta agudo · arriba octava", plays: "G7", table: true },
+  { h: "Mano izquierda · levántala", pose: 5, cap: "baja: básico · media: con séptima · alta: agudo · arriba: muy agudo", plays: "G7", table: true },
   { h: "El patrón · el ritmo va solo", pose: 4, cap: "mantén el acorde y suena · suéltalo y calla", plays: "D DU UDU", table: false, text: ["con un acorde puesto, el ukelele rasguea solo al tempo con el patrón elegido (02 · Patrón)","isla, abajo, corcheas, balada, chuck, vals · o manual","sin pose no suena nada: el silencio también se toca"] },
   { h: "Mano derecha · el ritmo", pose: 5, cap: "sin ella, negras · con ella, tú mandas", plays: "↻", table: false, text: ["gira la muñeca: palma plana es escaso, de canto son corcheas; en medio, negras y el patrón","mano alta suena fuerte, baja suave","puño: apaga · un golpe rápido: rasgueo extra · pinza: una cuerda"] },
   { h: "Mano derecha · puntea", pose: 1, pinch: true, cap: "pinza con cada dedo · una cuerda", plays: "G C E A", table: false, text: ["pulgar con índice → cuerda G","con corazón → C · anular → E · meñique → A","un arpegio es una pinza detrás de otra"] },
@@ -479,7 +481,8 @@ function processHands(res, now) {
     poseHist.push(p * 2 + (flip ? 1 : 0)); if (poseHist.length > 7) poseHist.shift();
     const cnt = {}; let best = null, bestN = 0; poseHist.forEach(v => { cnt[v] = (cnt[v] || 0) + 1; if (cnt[v] > bestN) { bestN = cnt[v]; best = v; } });
     if (bestN >= 4) { const vp = best >> 1, vf = !!(best & 1);
-      if (vp !== live.pose || vf !== live.flip || lvl !== live.level) { live = { pose: vp, flip: vf, level: lvl }; chord = chordFrom(vp, vf, lvl); if (vp) seen.chord = true; updateChordUI(); coachCheck(); } }
+      if (vp !== live.pose || vf !== live.flip || lvl !== live.level) { const wasOpen = chord.open; live = { pose: vp, flip: vf, level: lvl }; chord = chordFrom(vp, vf, lvl); if (vp) seen.chord = true; updateChordUI(); coachCheck();
+        if (!chord.open && (wasOpen || vp !== 0) && ctx.currentTime - lastAutoStrum > .16) { strum(chord.frets, true, .6 * rightVel + .2); lastAutoStrum = ctx.currentTime; } } }
     $("plateL").textContent = p ? POSE_SHORT[p] + (flip ? " · dorso" : " · palma") + " · " + LEVEL_NAME[lvl] : "sin pose · al aire";
     handPos.L = ch.lm; $("hpL").hidden = !helpOn; $("ladL").hidden = false; setLadder("ladL", hy, LEVEL_NAME[lvl].toUpperCase());
   } else { handPos.L = null; poseHist = []; $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } }
@@ -538,13 +541,15 @@ function draw(res) {
   });
   // etiquetas pegadas a la mano y arco de giro (texto sin espejo)
   const label = (lm, lines, arcVal) => {
-    const wx = lm[0].x * W, wy = lm[0].y * H;
+    const wx = lm[0].x * W, wy = Math.min(lm[0].y * H, H - 60), px = lm[9].x * W, py = lm[9].y * H;
     cx.save(); cx.translate(W, 0); cx.scale(-1, 1);
-    const sx = W - wx;
+    const sx = W - wx, spx = W - px;
     if (arcVal !== undefined) { cx.strokeStyle = "rgba(159,211,255,.5)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(sx, wy - 40, 70, Math.PI * .15, Math.PI * .85); cx.stroke();
       const ang = Math.PI * (.85 - .7 * arcVal); cx.fillStyle = "#e9e7e2"; cx.beginPath(); cx.arc(sx + Math.cos(ang) * 70, wy - 40 + Math.sin(ang) * 70, 3.5, 0, 7); cx.fill(); }
-    cx.font = "11px Geist Mono, monospace"; cx.textAlign = "center";
-    lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.62)" : "#e9e7e2"; cx.fillText(t, sx, wy + 44 + i * 15); });
+    cx.font = "11px Geist Mono, monospace"; cx.textAlign = arcVal !== undefined ? "left" : "right";
+    const lx = arcVal !== undefined ? spx + 90 : spx - 90;
+    cx.strokeStyle = "rgba(159,211,255,.35)"; cx.beginPath(); cx.moveTo(spx, py); cx.lineTo(lx + (arcVal !== undefined ? -8 : 8), py - 4); cx.stroke();
+    lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.62)" : "#e9e7e2"; cx.fillText(t, lx, py + i * 15); });
     cx.restore();
   };
   if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose"]);
@@ -611,6 +616,7 @@ let patKey = "isla";
 const pat = () => PATTERNS[patKey];
 const T = { bpm: 90, slot: 0, next: 0, timer: null, nslots: 8, bar: 4, swing: .5, beatT: 0 };
 let rightVel = .65;   // la altura de la mano derecha la modula
+let lastAutoStrum = 0;
 let density = 1, rollS = null, rollVal = 0, handPos = { L: null, R: null };      // 0 escaso · 1 negras · 2 patrón · 3 corcheas  (giro de muñeca)
 const DENS_NAME = ["escaso", "negras", "patrón", "corcheas"];
 function slotsNow() { const base = pat().slots, n = base.length; if (patKey === "manual") return base;
@@ -635,7 +641,7 @@ function startTransport() {
         const base = slot === 0 ? .85 : c === "U" ? .5 : .7;
         const vel = Math.max(.15, Math.min(1, base * rightVel * 1.4));
         if (c === "x") setTimeout(() => chuck(vel), Math.max(0, (when - ctx.currentTime) * 1000));
-        else strumAt(chord.frets, c === "D", vel, when);
+        else { strumAt(chord.frets, c === "D", vel, when); lastAutoStrum = when; }
         if (slot % 2 === 0) onStrum();
       }
       setTimeout(() => onSlot(slot), Math.max(0, (when - ctx.currentTime) * 1000));
@@ -676,12 +682,14 @@ function startSong() {
 }
 function onBeat(bi) {
   $("prog").style.width = Math.max(0, 100 * bi / totalBeats) + "%";
-  if (bi < 0) { $("lyr").innerHTML = `<span class="k">entrada · ${song.bar + bi}</span>`; $("nextName").textContent = target(tl[0]).name; return; }
+  if (bi < 0) { $("lyr").innerHTML = `<span class="k">entrada · ${song.bar + bi}</span>`; const t0c = target(tl[0]); $("nextName").innerHTML = `prepara ${t0c.name} <small>${POSE_SHORT[ROMAN[tl[0].roman][0]]}</small>`; return; }
   const ciNow = tl.findIndex(c => bi >= c.start && bi < c.start + c.beats);
   if (ciNow !== cellIdx) {
     if (cellIdx >= 0 && cellOk[cellIdx] === undefined) cellOk[cellIdx] = false;
     cellIdx = ciNow; const cur = tl[ciNow], nx = tl[ciNow + 1];
-    $("nextName").textContent = target(cur).name + (nx ? " → " + target(nx).name : "");
+    const tn = target(cur), tx = nx ? target(nx) : null, pn = ROMAN[cur.roman][0], px = nx ? ROMAN[nx.roman][0] : 0;
+    $("nextName").innerHTML = `${tn.name} <small>${POSE_SHORT[pn]}</small>` + (tx ? ` <span class="arr">→</span> ${tx.name} <small>${POSE_SHORT[px]}</small>` : "");
+    $("nextGlyph").innerHTML = (tx ? fingerGlyph(POSE_FINGERS[px]) : "");
     $("lyr").innerHTML = `${cur.lyric || "&nbsp;"}<span class="nx">${nx && nx.lyric ? nx.lyric : ""}</span>`;
     renderSing();
   }
@@ -742,7 +750,7 @@ $("key").onchange = e => { key = +e.target.value; retheory(); };
 $("scale").onchange = e => { scaleKey = e.target.value; retheory(); };
 $("swing").oninput = e => { $("swingVal").textContent = e.target.value; T.swing = e.target.value / 100; };
 $("hands").onchange = e => swapped = e.target.value === "l";
-$("metro").onclick = e => { metroOn = !metroOn; e.target.textContent = "Clic · " + (metroOn ? "on" : "off"); e.target.setAttribute("aria-pressed", metroOn); };
+$("metro").onclick = e => { metroOn = !metroOn; e.target.textContent = "Metrónomo · " + (metroOn ? "on" : "off"); e.target.setAttribute("aria-pressed", metroOn); };
 $("tempo").oninput = e => { $("tempoVal").textContent = e.target.value; T.bpm = +e.target.value; };
 $("pattern").innerHTML = Object.entries(PATTERNS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
 $("pattern").onchange = e => setPattern(e.target.value);
