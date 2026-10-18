@@ -453,8 +453,8 @@ function handSVG(fingers, flipped, size = 120) {
   const W = [[32,88],[44,62],[58,58],[72,62],[84,72],[60,118]];
   let s = `<svg viewBox="-4 -6 112 132" width="${size}" height="${size * 1.15}" fill="none" stroke="${flipped ? "rgba(159,211,255,.45)" : "#9fd3ff"}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px rgba(159,211,255,.5))" aria-hidden="true">`;
   s += `<path d="M32 88 L44 62 L58 58 L72 62 L84 72 L60 118 Z" ${flipped ? 'stroke-dasharray="3 3"' : ""}/>`;
-  fingers.forEach((on, i) => { const pts = on ? F[i] : curl[i]; s += `<polyline points="${pts.map(p => p.join(",")).join(" ")}"/>`; pts.forEach(p => s += `<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="#06070a"/>`); });
-  s += `<circle cx="60" cy="118" r="3" fill="#06070a"/><path d="M58 86 h4 M60 84 v4" stroke="${flipped ? "rgba(159,211,255,.45)" : "#9fd3ff"}"/></svg>`;
+  fingers.forEach((on, i) => { const pts = on ? F[i] : curl[i]; s += `<polyline points="${pts.map(p => p.join(",")).join(" ")}"/>`; const t = pts[3]; s += `<circle cx="${t[0]}" cy="${t[1]}" r="3.2" fill="#06070a"/>`; });
+  s += `<circle cx="60" cy="118" r="3.4" fill="#06070a"/><path d="M56 80 h8 M60 76 v8" stroke-width="1.2"/></svg>`;
   return s;
 }
 function fingerGlyph(f) { return `<span style="display:inline-flex;gap:1px;align-items:flex-end;height:10px;margin-right:6px">${f.map((on, i) => `<i style="display:block;width:3px;height:${[6,9,10,9,7][i]}px;background:${on ? "var(--ink)" : "var(--ink-16)"}"></i>`).join("")}</span>`; }
@@ -581,12 +581,13 @@ const canvas = $("canvas"), cx = canvas.getContext("2d"), video = $("video");
 function draw(res) {
   const W = canvas.width, H = canvas.height; cx.clearRect(0, 0, W, H);
   res.landmarks.forEach(lm => {
-    cx.lineWidth = 1.1; cx.strokeStyle = "rgba(159,211,255,.7)";
+    cx.lineWidth = 1.2; cx.strokeStyle = "rgba(159,211,255,.8)"; cx.shadowColor = "rgba(159,211,255,.55)"; cx.shadowBlur = 6;
     CONN.forEach(([a, b]) => { cx.beginPath(); cx.moveTo(lm[a].x * W, lm[a].y * H); cx.lineTo(lm[b].x * W, lm[b].y * H); cx.stroke(); });
-    cx.fillStyle = "rgba(6,7,10,.8)"; cx.strokeStyle = "rgba(159,211,255,.9)"; cx.lineWidth = 1;
-    lm.forEach((p, i) => { const r = [4,8,12,16,20,0].includes(i) ? 2.6 : 1.6; cx.beginPath(); cx.arc(p.x * W, p.y * H, r, 0, 7); cx.fill(); cx.stroke(); });
+    cx.fillStyle = "rgba(6,7,10,.85)"; cx.strokeStyle = "rgba(159,211,255,.95)"; cx.lineWidth = 1.2;
+    [4,8,12,16,20,0].forEach(i => { const p = lm[i]; cx.beginPath(); cx.arc(p.x * W, p.y * H, i === 0 ? 4.5 : 4, 0, 7); cx.fill(); cx.stroke(); });
+    cx.shadowBlur = 0;
     // cruz en el centro de la palma
-    const c = lm[9]; cx.beginPath(); cx.moveTo(c.x * W - 6, c.y * H); cx.lineTo(c.x * W + 6, c.y * H); cx.moveTo(c.x * W, c.y * H - 6); cx.lineTo(c.x * W, c.y * H + 6); cx.stroke();
+    const c = { x: (lm[0].x + lm[5].x + lm[17].x) / 3, y: (lm[0].y + lm[5].y + lm[17].y) / 3 }; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(c.x * W - 6, c.y * H); cx.lineTo(c.x * W + 6, c.y * H); cx.moveTo(c.x * W, c.y * H - 6); cx.lineTo(c.x * W, c.y * H + 6); cx.stroke();
   });
   // etiquetas pegadas a la mano y arco de giro (texto sin espejo)
   const label = (lm, lines, arcVal, rightSide = false) => {
