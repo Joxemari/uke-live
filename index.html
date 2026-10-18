@@ -124,6 +124,12 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .nextbox .v small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-62);vertical-align:middle;margin:0 4px}
 .nextbox .v small b{font-weight:400;color:var(--ink);font-size:13px;border:1px solid var(--ink-38);padding:0 4px;margin-right:2px}
 .nextbox .v .arr{color:var(--ink-38);margin:0 6px}
+.nextbox .cd{display:flex;gap:6px;margin-top:4px;height:10px;align-items:center}
+.nextbox .cd i{width:9px;height:9px;border:1px solid var(--ink-62);transition:background .05s}
+.nextbox .cd i.on{background:var(--ink)}
+.nextbox .cd i.last{border-color:var(--ok)}
+.nextbox .v.go{color:var(--ok);text-shadow:0 0 14px rgba(143,227,161,.6)}
+.nextbox .v .nx.go{color:var(--ok)}
 .lyr{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:min(720px,60%);text-align:center;font-size:15px;letter-spacing:.06em;color:var(--ink);text-shadow:0 0 20px #000}
 .lyr .nx{color:var(--ink-38);display:block;font-size:11px;margin-top:4px}
 .sing{position:absolute;right:16px;top:100px;bottom:120px;width:min(320px,38%);background:rgba(6,7,10,.7);backdrop-filter:blur(8px);padding:12px 14px;overflow:hidden;display:grid;grid-template-rows:auto auto 1fr;gap:8px}
@@ -278,7 +284,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
         <div class="chordbig num" id="chordName">—</div>
         <div class="notes num" id="chordHow">sin pose · levanta un dedo</div>
         <div class="sub k" id="chordSub"></div>
-        <div class="nextbox" id="nextbox" hidden><span class="k">ahora → siguiente · qué dedos</span><span class="v num" id="nextName"></span><span id="nextGlyph"></span></div>
+        <div class="nextbox" id="nextbox" hidden><span class="k">ahora → siguiente · qué dedos</span><span class="v num" id="nextName"></span><div class="cd" id="cellDots"></div><span id="nextGlyph"></span></div>
       </div>
       <div class="lyr" id="lyr"></div>
       <div class="sing" id="sing" hidden><span class="k">Hoja · acorde y pose<span id="singTitle"></span></span><div class="k" id="singNote" style="color:var(--ink-62);text-transform:none;letter-spacing:.04em;font-size:11px"></div><div class="lines" id="singLines"></div></div>
@@ -424,9 +430,9 @@ function click(acc, when) { const o = ctx.createOscillator(), g = ctx.createGain
 /* ================= CANCIONES (dominio público) ================= */
 const SONGS = [
   { title: "Happy Birthday", key: "C", bpm: 100, bar: 3, cells: [
-    ["I",3,"Happy birthday to"],["V7",3,"you, happy birthday to"],["I",3,"you, happy"],["I",3,"birthday dear"],["I",3,"(nombre), happy"],["IV",3,"birthday"],["I",2,"to"],["V7",1,""],["I",3,"you."] ] },
+    ["I",3,"(Happy) birthday to"],["V7",3,"you, happy"],["V7",3,"birthday to"],["I",3,"you, happy"],["I",3,"birthday dear"],["IV",3,"(nombre), happy"],["I",2,"birthday"],["V7",1,"to"],["I",3,"you."] ] },
   { title: "Cumpleaños feliz", key: "C", bpm: 100, bar: 3, cells: [
-    ["I",3,"Cumpleaños feliz,"],["V7",3,"cumpleaños feliz,"],["I",3,"te deseamos"],["I",3,"todos,"],["I",3,"cumpleaños"],["IV",3,"feliz."],["I",2,"Cumpleaños"],["V7",1,"fe-"],["I",3,"liz."] ] },
+    ["I",3,"(Cumple)años feliz,"],["V7",3,"cumpleaños"],["V7",3,"feliz,"],["I",3,"te deseamos"],["I",3,"todos,"],["IV",3,"cumpleaños"],["I",2,"fe-"],["V7",1,""],["I",3,"liz."] ] },
   { title: "Over the Rainbow (IZ)", key: "C", bpm: 84, bar: 4, cells: [
     ["I",4,"intro"],["iii",4,""],["IV",4,""],["I",4,""],["IV",4,""],["I",4,""],["V",4,""],["vi",4,""],["IV",4,""],
     ["I",4,"verso · somewhere…"],["iii",4,""],["IV",4,""],["I",4,""],["IV",4,"way up high"],["I",4,""],["V",4,""],["vi",4,""],["IV",4,""],
@@ -450,10 +456,18 @@ const SONGS = [
     ["III",4,"estribillo"],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""],
     ["i",2,"estrofa"],["VI",2,""],["VII",4,""],["v",4,""],["VI",4,""],["iv",4,""],["V!",4,""],
     ["III",4,"estribillo"],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""],["VII",4,""],["i",4,""],["VI",4,""],["III",4,""] ] },
-  { title: "Estrellita", key: "C", bpm: 92, bar: 4, cells: [["I",2,"Twinkle, twinkle,"],["I",2,"little star,"],["IV",2,"how I"],["I",2,"wonder"],["IV",2,"what you"],["I",2,"are."],["V7",2,""],["I",2,""],["I",2,"Up above the"],["IV",2,"world so high,"],["I",2,"like a"],["V7",2,"diamond"],["I",2,"in the"],["IV",2,"sky."],["I",2,""],["V7",2,""],["I",2,"Twinkle, twinkle,"],["I",2,"little star,"],["IV",2,"how I"],["I",2,"wonder"],["IV",2,"what you"],["I",2,"are."],["V7",2,""],["I",2,""]] },
+  { title: "Estrellita", key: "C", bpm: 92, bar: 4, cells: [
+    ["I",2,"Twinkle, twinkle,"],["I",2,""],["IV",2,"little"],["I",2,"star,"],["IV",2,"how I"],["I",2,"wonder"],["V7",2,"what you"],["I",2,"are."],
+    ["I",2,"Up above the"],["IV",2,"world so"],["I",2,"high,"],["V7",2,"like a"],["I",2,"diamond"],["IV",2,"in the"],["I",2,"sky."],["V7",2,""],
+    ["I",2,"Twinkle, twinkle,"],["I",2,""],["IV",2,"little"],["I",2,"star,"],["IV",2,"how I"],["I",2,"wonder"],["V7",2,"what you"],["I",2,"are."] ] },
   { title: "Aloha ʻOe", key: "C", bpm: 84, bar: 4, cells: [["I",4,"Aloha ʻoe,"],["IV",4,"aloha ʻoe"],["I",4,"e ke onaona"],["V7",4,"noho i ka lipo"],["I",4,"One fond embrace,"],["IV",4,"a hoʻi aʻe au"],["I",2,"until we"],["V7",2,"meet"],["I",4,"again"]] },
-  { title: "Oh! Susanna", key: "C", bpm: 112, bar: 4, cells: [["I",4,"I come from Alabama"],["I",4,"with my banjo on my knee"],["I",4,"I'm going to Louisiana"],["V7",4,"my true love for to see"],["I",4,"It rained all night the day I left"],["I",4,"the weather it was dry"],["I",2,"the sun so hot"],["V7",2,"I froze to death"],["I",4,"Susanna don't you cry"],["IV",4,"Oh! Susanna,"],["IV",4,"oh don't you cry for me"],["I",4,"for I come from Alabama"],["V7",4,"with my banjo on my knee"],["I",4,"Oh! Susanna,"],["I",4,"oh don't you cry for me"],["I",2,"for I come from"],["V7",2,"Alabama"],["I",4,"with my banjo on my knee"]] },
-  { title: "When the Saints", key: "C", bpm: 120, bar: 4, cells: [["I",4,"Oh when the saints"],["I",4,""],["I",4,"go marching in"],["I",4,""],["I",4,"Oh when the saints go"],["I",4,"marching in"],["V7",4,""],["V7",4,""],["I",4,"Oh Lord I want to"],["I",4,"be in that number"],["IV",4,""],["IV",4,""],["I",4,"when the saints go"],["V7",4,"marching"],["I",4,"in"],["I",4,""]] },
+  { title: "Oh! Susanna", key: "C", bpm: 112, bar: 4, cells: [
+    ["I",4,"(I come from) Alabama"],["I",4,"with my banjo"],["I",4,"on my"],["V7",4,"knee,"],["I",4,"I'm going to Louisiana"],["I",4,"my true love"],["I",2,"for to"],["V7",2,""],["I",4,"see."],
+    ["I",4,"It rained all night"],["I",4,"the day I left,"],["I",4,"the weather it"],["V7",4,"was dry,"],["I",4,"the sun so hot"],["I",4,"I froze to death,"],["I",2,"Susanna"],["V7",2,"don't you"],["I",4,"cry."],
+    ["IV",4,"Oh! Susanna,"],["IV",4,"oh don't you"],["I",4,"cry for"],["V7",4,"me,"],["I",4,"for I come from Alabama"],["I",4,"with my banjo"],["I",2,"on my"],["V7",2,""],["I",4,"knee."] ] },
+  { title: "When the Saints", key: "C", bpm: 120, bar: 4, cells: [
+    ["I",4,"(Oh when the) saints"],["I",4,"go marching"],["I",4,"in,"],["I",4,""],["I",4,"(oh when the) saints"],["I",4,"go marching"],["V7",4,"in,"],["V7",4,""],
+    ["I",4,"(oh Lord I) want to"],["I",4,"be in that"],["IV",4,"number"],["IV",4,""],["I",4,"(when the) saints go"],["V7",4,"marching"],["I",4,"in."],["I",4,""] ] },
   { title: "Amazing Grace", key: "C", bpm: 80, bar: 3, cells: [["I",3,"Amazing"],["I",3,"grace how"],["IV",3,"sweet the"],["I",3,"sound"],["I",3,"that saved a"],["I",3,"wretch like"],["V7",3,"me"],["V7",3,""],["I",3,"I once was"],["I",3,"lost but"],["IV",3,"now am"],["I",3,"found"],["I",3,"was blind but"],["V7",3,"now I"],["I",3,"see"],["I",3,""]] },
 ];
 // [grado, séptima, girada]
@@ -803,11 +817,14 @@ function onBeat(bi) {
     cellIdx = ciNow; const cur = tl[ciNow], nx = tl[ciNow + 1];
     const tn = target(cur), tx = nx ? target(nx) : null, pn = ROMAN[cur.roman][0], px = nx ? ROMAN[nx.roman][0] : 0;
     const hint = r => `<b>0${ROMAN[r][0]}</b> · ` + POSE_SHORT[ROMAN[r][0]] + (ROMAN[r][2] ? " · dorso" : "");
-    $("nextName").innerHTML = `${tn.name} <small>${hint(cur.roman)}</small>` + (tx ? ` <span class="arr">→</span> ${tx.name} <small>${hint(nx.roman)}</small>` : "");
+    $("nextName").innerHTML = `${tn.name} <small>${hint(cur.roman)}</small>` + (tx ? ` <span class="arr">→</span> <span class="nx">${tx.name} <small>${hint(nx.roman)}</small></span>` : "");
     $("nextGlyph").innerHTML = (tx ? fingerGlyph(POSE_FINGERS[px]) : ""); renderHpL();
     $("lyr").innerHTML = `${cur.lyric || "&nbsp;"}<span class="nx">${nx && nx.lyric ? nx.lyric : ""}</span>`;
     renderSing();
   }
+  { const cur = tl[cellIdx], k = bi - cur.start, rem = cur.beats - k;
+    $("cellDots").innerHTML = Array.from({ length: cur.beats }, (_, i) => `<i class="${i <= k ? "on" : ""} ${i === cur.beats - 1 ? "last" : ""}"></i>`).join("");
+    const nxEl = $("nextName").querySelector(".nx"); if (nxEl) nxEl.classList.toggle("go", rem === 1); }
   const ok = matches(target(tl[cellIdx])); total++;
   if (ok) { hits++; stats.score += 10 * (1 + Math.min(5, Math.floor(stats.combo / 4))); stats.combo++; if (cellOk[cellIdx] !== false) cellOk[cellIdx] = true; }
   else { stats.combo = 0; cellOk[cellIdx] = false; }
