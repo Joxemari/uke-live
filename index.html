@@ -63,10 +63,12 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .inst button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .inst .k{margin-left:8px}
 .lesson-h{text-align:center;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-92)}
-.lesson-row{display:grid;grid-template-columns:1fr minmax(0,450px) 1fr;gap:14px;align-items:center}
-.lesson-row .side{opacity:.28;filter:blur(.2px);cursor:pointer;display:flex;justify-content:center;overflow:hidden;transition:opacity .2s}.lesson-row .side:hover{opacity:.5}
-.lesson.mini{width:200px;min-height:auto;padding:10px 12px;grid-template-columns:1fr;gap:6px}.lesson.mini .plays .k{font-size:9px;letter-spacing:.14em}.lesson.mini .hand svg{width:80px;height:92px}
-@media (max-width:900px){.lesson-row{grid-template-columns:minmax(0,1fr)}.lesson-row .side{display:none}}
+.lesson-row{position:relative;display:flex;justify-content:center;align-items:center;padding:6px 0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.lesson-row>.lesson{position:relative;z-index:1;background:#0b0c10;box-shadow:0 0 0 1px var(--ink-16),0 10px 40px rgba(0,0,0,.6)}
+.lesson-row .side{position:absolute;top:50%;width:450px;transform:translateY(-50%) scale(.94);opacity:.3;cursor:pointer;transition:opacity .2s}.lesson-row .side:hover{opacity:.55}
+.lesson-row .side[data-go="-1"]{left:calc(50% - 225px - 150px)}.lesson-row .side[data-go="1"]{left:calc(50% + 225px + 150px - 450px)}
+.lesson-row .side .lesson{pointer-events:none}
+@media (max-width:900px){.lesson-row .side{display:none}.lesson-row{mask-image:none;-webkit-mask-image:none}}
 .lesson{margin:0 auto;width:min(450px,100%);border:1px solid var(--ink-16);background:var(--ink-04);padding:14px 16px 12px;display:grid;grid-template-columns:1fr auto;gap:10px 16px;min-height:250px}
 .lesson .plays .k{display:block}
 .lesson .plays .v{font-size:22px;color:var(--ink);letter-spacing:.06em;line-height:1}
@@ -112,7 +114,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .tl .k{display:block;font-size:8px}
 .tl .v{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-92);border:1px solid var(--ink-38);padding:5px 10px;text-align:center}
 .tl .deck{display:flex;gap:4px}.tl .deck button{font-size:9px;padding:3px 7px;letter-spacing:.12em}.tl .deck select{font-size:9px;padding:2px 4px}
-.tr{position:absolute;top:12px;right:16px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:360px;text-shadow:0 0 6px #000}.tr .k{flex:1 1 100%;text-align:right;order:2;margin-top:4px}.tr button{border-color:var(--ink-16);background:rgba(6,7,10,.35);font-size:10px;padding:5px 10px}.tr select{font-size:10px;padding:4px 6px;background:rgba(6,7,10,.35);border-color:var(--ink-16)}
+.tr{position:absolute;top:12px;right:16px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:560px;text-shadow:0 0 6px #000}.tr .k{flex:1 1 100%;text-align:right;order:2;margin-top:4px}.tr button{border-color:var(--ink-16);background:rgba(6,7,10,.35);font-size:10px;padding:5px 10px}.tr select{font-size:10px;padding:4px 6px;background:rgba(6,7,10,.35);border-color:var(--ink-16)}
 .tr #recBtn.on{color:#f0a0a0;border-color:#f0a0a0}
 .coach{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:min(520px,calc(100% - 420px));background:rgba(6,7,10,.92);border:1px solid var(--ink-16);display:grid;grid-template-columns:auto 1fr auto;gap:0 14px;align-items:center;padding:8px 12px;z-index:2}
 .coach .hand svg{width:40px;height:46px}
@@ -164,9 +166,9 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .ladder-v .mk{position:absolute;left:-9px;width:19px;height:5px;background:var(--ink);border-radius:1px;transform:translateY(-50%);transition:top .08s;box-shadow:0 0 8px rgba(233,231,226,.5)}
 .ladder-v .mk span{position:absolute;left:26px;top:-5px;font-size:10px;letter-spacing:.16em;color:var(--ink);white-space:nowrap;text-shadow:0 0 6px #000}
 .ladder-v.r .mk{left:auto;right:-9px}.ladder-v.r .mk span{left:auto;right:26px}
-.hp{position:absolute;top:84px;width:280px;background:rgba(6,7,10,.66);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:12px 14px 14px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-62);display:grid;gap:12px;max-height:calc(100% - 240px);overflow:hidden}
-.hp.l{left:96px}.hp.r{right:96px;text-align:right}
-.hp .h{display:grid;gap:3px;white-space:nowrap}
+.hp{position:absolute;top:84px;width:320px;grid-template-columns:minmax(0,1fr);background:rgba(6,7,10,.66);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:12px 14px 14px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-62);display:grid;gap:12px;max-height:calc(100% - 240px);overflow:hidden}
+.hp.l{left:96px}.hp.r{right:150px;text-align:right;top:108px;padding:12px 14px 14px}
+.hp .h{display:grid;gap:3px;white-space:normal}
 .hp .h span{color:var(--ink);font-size:12px;letter-spacing:.16em}
 .hp .h small{font-size:9px;color:var(--ink-38);letter-spacing:.18em}
 .hp .h .x{display:none}
@@ -180,7 +182,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .hp tr.on td{background:rgba(233,231,226,.1);color:var(--ink);border-color:var(--ink-62)}
 .hp tr.on td:first-child{color:var(--ink)}
 .hp tr.tgt td{border-color:var(--ok)}.hp tr.tgt td:first-child{color:var(--ok)}
-.hp .sec .k2{display:block;color:var(--ink-38);font-size:9px;letter-spacing:.18em;margin-bottom:5px;white-space:nowrap}
+.hp .sec .k2{display:block;color:var(--ink-38);font-size:9px;letter-spacing:.18em;margin-bottom:5px;white-space:nowrap}.hp.r .sec .k2{white-space:normal;line-height:1.5}
 .hp .opts{display:flex;gap:4px;flex-wrap:wrap}.hp.r .opts{justify-content:flex-end}
 .hp .opt{border:1px solid rgba(233,231,226,.12);background:rgba(0,0,0,.28);padding:3px 8px;color:var(--ink-38);font-size:10px;letter-spacing:.1em;text-transform:none}
 .hp .opt.on{border-color:var(--ink-62);color:var(--ink);background:rgba(233,231,226,.1)}
@@ -189,6 +191,16 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .hp .ladder span{font-size:10px;color:var(--ink-38);letter-spacing:.1em;text-transform:none;padding:2px 8px;background:rgba(0,0,0,.28);border:1px solid rgba(233,231,226,.05)}.hp .ladder span.on{color:var(--ink);border-color:var(--ink-62);background:rgba(233,231,226,.1)}
 .hp .meter{height:3px;background:rgba(0,0,0,.4);border:1px solid rgba(233,231,226,.1);position:relative}.hp .meter i{position:absolute;right:0;top:0;bottom:0;background:var(--ink-62)}.hp.l .meter i{right:auto;left:0}
 .hp .st{color:var(--ink-62);font-size:10px}
+.hp .frows{display:grid;gap:4px}
+.hp .frow{display:grid;grid-template-columns:50px 1fr 46px 58px;gap:6px;align-items:center;padding:5px 8px;background:rgba(0,0,0,.28);border:1px solid rgba(233,231,226,.06);text-transform:none;letter-spacing:.04em;font-size:11px;color:var(--ink-62)}
+.hp .frow .fn{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-38)}
+.hp .frow .ff{color:var(--ink-92)}.hp .frow .ff select{background:transparent;border:0;padding:0;color:inherit;font-size:11px;letter-spacing:.02em;text-transform:none}
+.hp .frow .fb{height:5px;background:rgba(0,0,0,.5);border:1px solid rgba(233,231,226,.1);position:relative}.hp .frow .fb i{position:absolute;left:0;top:0;bottom:0;background:var(--mc,var(--ink-62))}
+.hp .frow .fv{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-62)}
+.hp .frow.on{border-color:var(--mc);background:rgba(233,231,226,.08);color:var(--ink)}.hp .frow.on .fn{color:var(--mc)}
+.hp.r .frow{text-align:left}
+.modeBig{position:absolute;top:82px;right:16px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-62);text-shadow:0 0 6px #000}
+.modeBig b{font-weight:400;color:var(--mc,var(--ink))}
 @media (max-width:900px){.hp{display:none}}
 .plate{position:absolute;left:0;right:0;bottom:0;height:72px;background:linear-gradient(180deg,transparent,rgba(6,7,10,.6) 60%);text-shadow:0 0 6px #000;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;padding:0 46px 12px}
 .plate .side{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-92)}
@@ -304,6 +316,7 @@ body[data-mirror="0"] .cam video,body[data-mirror="0"] .cam canvas{transform:non
       </aside>
       <div class="tr"><span class="k" id="trInfo"></span><button id="setBtn">↗ Ajustes</button><button id="recBtn">● Rec</button><select id="recFmt" title="formato de la toma"><option value="h">horizontal</option><option value="v">vertical</option></select><button id="exit">▲ Salir</button><button id="help" aria-pressed="true">Ayuda · on</button><button id="metro" aria-pressed="false">Metrónomo · off</button></div>
       <div class="brand">uke.live</div>
+      <div class="modeBig" id="modeBig" hidden>R · <b id="modeBigName">melodía</b></div>
       <div class="center">
         <div class="strip k" id="strip2"></div>
         <div class="chordbig num" id="chordName">—</div>
@@ -613,15 +626,15 @@ const LESSON_SETS = {
     { h: "Mano izquierda · cuenta el acorde", pose: 1, cap: "un dedo · la primera · suena mientras dure la pose", table: true, anim: "count" },
     { h: "Mano izquierda · la altura es el color", pose: 5, cap: "baja: triada · arriba: trecena", plays: "G", table: false, anim: "height", lv: ["13ª", "9ª", "7ª", "triada"] },
     { h: "Mano izquierda · gira la muñeca", pose: 5, cap: "como un pomo · abre el filtro del pad", plays: "cutoff", table: false, anim: "roll", lv: ["cerrado · recta", "abierto · inclinada"] },
-    { h: "Mano derecha · el arco de modos", pose: 0, cap: "puño · mueve · abre la mano para elegir", plays: "modo", table: false, anim: "arc", color: "#e8c56a", lv: ["batería", "bajo", "melodía", "fx / dj", "sculpt"] },
+    { h: "Mano derecha · el arco de modos", pose: 0, cap: "puño con el dorso a la cámara · mueve · abre la mano para elegir", plays: "modo", table: false, anim: "arc", color: "#e8c56a", lv: ["batería", "bajo", "melodía", "fx / dj", "sculpt"] },
     { h: "Pinza · melodía", pose: 1, pinch: true, cap: "la altura elige la nota · la pinza la hace sonar", plays: "A#5", table: false, anim: "pinch", color: "#e8c56a", lv: ["índice · sierra", "corazón · cuadrada", "anular · theremin", "meñique · flauta"] },
-    { h: "Pinza · batería y bajo", pose: 1, pinch: true, cap: "un dedo por familia · el giro dice cuánto", plays: "kit", table: false, anim: "kit", color: "#e07a6a", lv: ["índice · bombo", "corazón · caja", "anular · charles", "meñique · toms"] },
+    { h: "Pinza · batería y bajo", pose: 1, pinch: true, cap: "un dedo por familia · pinza y gira: sube o baja · suelta y se queda", plays: "kit", table: false, anim: "kit", color: "#e07a6a", lv: ["índice · bombo", "corazón · caja", "anular · charles", "meñique · toms"] },
     { h: "Pinza · fx / dj", pose: 1, pinch: true, cap: "cada efecto dura lo que dura la pinza", plays: "fx", table: false, anim: "pinch", color: "#c9a0f0", lv: ["índice · filtro", "corazón · crush", "anular · delay", "meñique · stutter"] },
     { h: "Sculpt · esculpe el acorde", pose: 1, pinch: true, cap: "pinza + giro · se queda al cambiar de modo", plays: "sculpt", table: false, anim: "pinch", color: "#8fe3a1", lv: ["índice · arp", "corazón · envolvente", "anular · glide", "meñique · trémolo"] },
   ],
   txala: [
     { h: "Dos manos · dos makilak", pose: 5, cap: "izquierda y derecha · cada una un palo", plays: "ttakun", table: false, anim: "alt", color: "#e07a6a", text: ["las dos manos valen igual","no hay acordes: solo golpes","la alternancia es el ritmo"] },
-    { h: "La tabla · cruza la línea", pose: 5, cap: "baja la mano hasta cruzar · sube para rearmar", plays: "golpe", table: false, anim: "strike", color: "#e07a6a", text: ["el golpe suena en el instante del cruce","la punta más baja de la mano es la makila","más rápido, más fuerte"] },
+    { h: "El golpe · baja y frena", pose: 5, cap: "un golpe seco hacia abajo, a cualquier altura", plays: "golpe", table: false, anim: "strike", color: "#e07a6a", text: ["suena en el pico de la bajada, sin esperar","la zona horizontal elige la tabla","más rápido, más fuerte"] },
     { h: "Tres tablas · la posición", pose: 5, cap: "izquierda baxua · centro erdikoa · derecha altua", plays: "165 · 220 · 294", table: false, anim: "planks", color: "#e07a6a", lv: ["baxua · 165 Hz", "erdikoa · 220 Hz", "altua · 294 Hz"] },
     { h: "Ttakun eta herrena", pose: 5, cap: "una mano lleva, la otra responde · metrónomo = guía", plays: "ta · kun", table: false, anim: "alt", color: "#e07a6a", text: ["ttakun: dos golpes regulares","herrena: el que cojea, entre medias","activa el metrónomo para oír la guía"] },
     { h: "La toma", pose: 0, cap: "● Rec graba vídeo y sonido en tu navegador", plays: "rec", table: false, text: ["horizontal o vertical","nada sale de tu dispositivo","el archivo se descarga al parar"] },
@@ -668,7 +681,7 @@ function lessonCard(L, mini) {
 function renderLesson() {
   const L = LESSONS[li]; $("lessonH").textContent = L.h;
   const prev = LESSONS[(li + LESSONS.length - 1) % LESSONS.length], next = LESSONS[(li + 1) % LESSONS.length];
-  $("lessonRow").innerHTML = `<div class="side" data-go="-1">${lessonCard(prev, true)}</div>${lessonCard(L, false)}<div class="side" data-go="1">${lessonCard(next, true)}</div>`;
+  $("lessonRow").innerHTML = `<div class="side" data-go="-1">${lessonCard(prev, false)}</div>${lessonCard(L, false)}<div class="side" data-go="1">${lessonCard(next, false)}</div>`;
   $("sq").innerHTML = LESSONS.map((_, i) => `<i class="${i === li ? "on" : ""}" data-i="${i}"></i>`).join("");
   animateLesson();
 }
@@ -769,26 +782,34 @@ const canvas = $("canvas"), cx = canvas.getContext("2d"), video = $("video");
 function draw(res) {
   const W = canvas.width, H = canvas.height; cx.clearRect(0, 0, W, H);
   res.landmarks.forEach(lm => {
-    cx.lineWidth = 1.2; cx.strokeStyle = "rgba(159,211,255,.8)"; cx.shadowColor = "rgba(159,211,255,.55)"; cx.shadowBlur = 6;
+    const isR = inst === "synth" && handPos.R === lm, col = isR ? MODE_COLOR[synthMode] : "#9fd3ff";
+    cx.lineWidth = 1.2; cx.strokeStyle = col + "cc"; cx.shadowColor = col + "88"; cx.shadowBlur = 6;
     CONN.forEach(([a, b]) => { cx.beginPath(); cx.moveTo(lm[a].x * W, lm[a].y * H); cx.lineTo(lm[b].x * W, lm[b].y * H); cx.stroke(); });
-    cx.fillStyle = "rgba(6,7,10,.85)"; cx.strokeStyle = "rgba(159,211,255,.95)"; cx.lineWidth = 1.2;
-    [4,8,12,16,20,0].forEach(i => { const p = lm[i]; cx.beginPath(); cx.arc(p.x * W, p.y * H, i === 0 ? 4.5 : 4, 0, 7); cx.fill(); cx.stroke(); });
+    cx.fillStyle = "rgba(6,7,10,.85)"; cx.strokeStyle = col; cx.lineWidth = 1.2;
+    [4,8,12,16,20,0].forEach(i => { const p = lm[i]; const on = isR && i >= 8 && rPinch[(i - 8) / 4]; cx.beginPath(); cx.arc(p.x * W, p.y * H, on ? 7 : (i === 0 ? 4.5 : 4), 0, 7); if (on) cx.fillStyle = col; cx.fill(); cx.fillStyle = "rgba(6,7,10,.85)"; cx.stroke(); });
     cx.shadowBlur = 0;
+    if (isR && !arc) {   // función de cada dedo en la punta · el pinzado, encendido con su valor
+      const fns = fingerFns(), vals = fingerVals(); cx.save(); cx.translate(W, 0); cx.scale(-1, 1);
+      [8,12,16,20].forEach((ti, i) => { const p = lm[ti], x = W - p.x * W, y = p.y * H - 14, on = rPinch[i]; const txt = (on ? "● " : "") + fns[i].toUpperCase() + (on && vals[i] !== null ? " · " + Math.round(vals[i] * 100) + "%" : "");
+        cx.font = (on ? "12px" : "9px") + " Geist Mono, monospace"; cx.textAlign = "center"; const w = cx.measureText(txt).width + 10; cx.fillStyle = on ? col : "rgba(6,7,10,.6)"; cx.fillRect(x - w / 2, y - 11, w, 15); cx.fillStyle = on ? "#06070a" : "rgba(233,231,226,.8)"; cx.fillText(txt, x, y); });
+      cx.restore(); }
     // cruz en el centro de la palma
     const c = { x: (lm[0].x + lm[5].x + lm[17].x) / 3, y: (lm[0].y + lm[5].y + lm[17].y) / 3 }; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(c.x * W - 6, c.y * H); cx.lineTo(c.x * W + 6, c.y * H); cx.moveTo(c.x * W, c.y * H - 6); cx.lineTo(c.x * W, c.y * H + 6); cx.stroke();
   });
   if (inst === "txala") drawTxala(W, H);
-  if (inst === "synth") { drawArc(W, H); if (synthLine) drawNoteLine(W, H, synthLine.lm, synthLine.label); }
+  if (inst === "synth") { drawArc(W, H); if (synthLine) drawNoteLine(W, H, synthLine.lm, synthLine.label);
+    if (pinchInfo && pinchInfo.pt) { const mc = MODE_COLOR[synthMode], px = pinchInfo.pt.x * W, py = pinchInfo.pt.y * H, t = performance.now() / 1000; cx.strokeStyle = mc; cx.lineWidth = 1.5; cx.beginPath(); cx.arc(px, py, 16 + Math.sin(t * 6) * 1.5, 0, 7); cx.stroke(); cx.strokeStyle = mc + "55"; cx.lineWidth = 1; cx.beginPath(); cx.arc(px, py, 26, 0, Math.PI * 2 * (pinchInfo.value ?? 1)); cx.stroke(); } }
   // etiquetas pegadas a la mano y arco de giro (texto sin espejo)
   const label = (lm, lines, arcVal, rightSide = false) => {
     const wx = lm[0].x * W, wy = Math.min(lm[0].y * H, H - 60), px = lm[9].x * W, py = lm[9].y * H;
     cx.save(); cx.translate(W, 0); cx.scale(-1, 1);
     const sx = W - wx, spx = W - px;
-    if (arcVal !== undefined) { cx.strokeStyle = "rgba(159,211,255,.5)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(sx, wy - 40, 70, Math.PI * .15, Math.PI * .85); cx.stroke();
+    const lc = (inst === "synth" && lm === handPos.R) ? MODE_COLOR[synthMode] : "#9fd3ff";
+    if (arcVal !== undefined) { cx.strokeStyle = lc + "88"; cx.lineWidth = 1; cx.beginPath(); cx.arc(sx, wy - 40, 70, Math.PI * .15, Math.PI * .85); cx.stroke();
       const ang = Math.PI * (.85 - .7 * arcVal); cx.fillStyle = "#e9e7e2"; cx.beginPath(); cx.arc(sx + Math.cos(ang) * 70, wy - 40 + Math.sin(ang) * 70, 3.5, 0, 7); cx.fill(); }
     cx.font = "11px Geist Mono, monospace"; cx.textAlign = rightSide ? "left" : "right";
     const lx = rightSide ? spx + 90 : spx - 90;
-    cx.strokeStyle = "rgba(159,211,255,.35)"; cx.beginPath(); cx.moveTo(spx, py); cx.lineTo(lx + (rightSide ? -8 : 8), py - 4); cx.stroke();
+    cx.strokeStyle = lc + "66"; cx.beginPath(); cx.moveTo(spx, py); cx.lineTo(lx + (rightSide ? -8 : 8), py - 4); cx.stroke();
     const wmax = Math.max(...lines.map(t => cx.measureText(t).width));
     cx.fillStyle = "rgba(6,7,10,.6)"; cx.fillRect(rightSide ? lx - 8 : lx - wmax - 8, py - 13, wmax + 16, lines.length * 15 + 8);
     lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.7)" : "#e9e7e2"; cx.font = (i === 0 && arcVal !== undefined ? "13px" : "11px") + " Geist Mono, monospace"; cx.fillText(t, lx, py + i * 15); });
@@ -874,7 +895,7 @@ function rollOf(lm, role = "L", wl = null) {
   const asp = canvas.width / Math.max(1, canvas.height);
   const dx = (lm[9].x - lm[0].x) * asp, dy = lm[9].y - lm[0].y;
   const deg = Math.abs(Math.atan2(dx, -dy)) * 180 / Math.PI;      // 0° = mano vertical
-  const r = Math.max(0, Math.min(1, deg / 60));
+  const r = Math.max(0, Math.min(1, (deg - 6) / 54));      // 6° de zona muerta · 60° = tope
   rollDbg = { role, deg: Math.round(deg), r: +r.toFixed(2) };
   return r;
 }
@@ -1005,7 +1026,7 @@ function stopSong() { playing = false; setTimeout(renderHpL, 0); setTimeout(rend
 let inst = "uke", synthMode = "melody";
 const INST_HINT = { uke: "cuerda · izquierda el acorde, derecha el rasgueo", synth: "síntesis · izquierda el acorde (altura = color, giro = filtro) · derecha: batería, bajo, melodía, fx y sculpt", txala: "percusión · dos manos, dos makilak · cruza la línea de la tabla hacia abajo · la posición elige la tabla" };
 let hpRUke = null;
-function setInst(k) { LESSONS = LESSON_SETS[k]; li = 0; if ($("landing") && !$("landing").hidden) renderLesson(); setTimeout(setBeats, 0); document.querySelector(".center").style.visibility = k === "txala" ? "hidden" : "visible"; if (!hpRUke) hpRUke = $("hpR").innerHTML; if (k === "uke") $("hpR").innerHTML = hpRUke; inst = k; if (!$("perf").hidden) renderSing(); $("plateRName").textContent = k === "uke" ? "R · Rasgueo" : k === "synth" ? "R · Modo" : "Eskuina"; $("plateLName").textContent = k === "txala" ? "Ezkerra" : k === "synth" ? "L · Pad" : "L · Acordes"; document.querySelectorAll("#instSel button").forEach(b => b.setAttribute("aria-pressed", b.dataset.i === k)); $("instHint").textContent = INST_HINT[k]; $("instBar").value = k; $("modeFld").hidden = k !== "synth"; $("plankFld").hidden = k !== "txala"; $("ukeSoundFld").hidden = k !== "uke"; $("voiceFld").hidden = k !== "synth"; $("snapFld").hidden = k !== "synth"; $("recBtn").hidden = false;
+function setInst(k) { LESSONS = LESSON_SETS[k]; li = 0; if ($("landing") && !$("landing").hidden) renderLesson(); setTimeout(setBeats, 0); document.querySelector(".center").style.visibility = k === "txala" ? "hidden" : "visible"; if (!hpRUke) hpRUke = $("hpR").innerHTML; if (k === "uke") $("hpR").innerHTML = hpRUke; inst = k; if (!$("perf").hidden) renderSing(); $("plateRName").textContent = k === "uke" ? "R · Rasgueo" : k === "synth" ? "R · Modo" : "Eskuina"; $("plateLName").textContent = k === "txala" ? "Ezkerra" : k === "synth" ? "L · Pad" : "L · Acordes"; document.querySelectorAll("#instSel button").forEach(b => b.setAttribute("aria-pressed", b.dataset.i === k)); $("instHint").textContent = INST_HINT[k]; $("instBar").value = k; $("modeFld").hidden = k !== "synth"; $("modeBig").hidden = k !== "synth"; if (k === "synth") setSynthMode(synthMode); $("plankFld").hidden = k !== "txala"; $("ukeSoundFld").hidden = k !== "uke"; $("voiceFld").hidden = k !== "synth"; $("snapFld").hidden = k !== "synth"; $("recBtn").hidden = false;
   if (ctx) { padStop(); } document.body.dataset.inst = k; if (!$("perf").hidden) { renderHpL(); } }
 
 // --- notas extendidas para el pad (diatónicas): triada · +7 · +9 · +13
@@ -1155,7 +1176,14 @@ let txalaFlash = [0, 0, 0], txalaHands = { L: { y: null, t: 0, v: 0, armed: true
 let synthState = { L: { pinch: [0,0,0,0] }, R: { pinch: [0,0,0,0], fistT: 0 } }, pendingPad = null;
 const MODES = [["drums", "BATERÍA"], ["bass", "BAJO"], ["melody", "MELODÍA"], ["fx", "FX / DJ"], ["sculpt", "SCULPT"]];
 const MODE_ES = { melody: "melodía", drums: "batería", bass: "bajo", fx: "fx / dj", sculpt: "sculpt" };
+const MODE_COLOR = { melody: "#e8c56a", drums: "#e07a6a", bass: "#9fd3ff", fx: "#c9a0f0", sculpt: "#8fe3a1" };
+const FINGER_ES = ["índice", "corazón", "anular", "meñique"];
+function fingerFns() { return { melody: fingerVoice.map(v => VOICE_ES[v]), drums: ["bombo", "caja", "charles", "toms"], bass: ["densidad", "notas", "octavas", "feel"], fx: ["filtro", "crush", "delay", "stutter"], sculpt: ["arp", "envolvente", "glide", "trémolo"] }[synthMode]; }
+function fingerVals() { return { melody: [null, null, null, null], drums: DRUMP.slice(), bass: ["density","tones","octaves","feel"].map(k => BASSA[k]), fx: [null, null, null, null], sculpt: ["arp","env","glide","trem"].map(k => SCULPT[k]) }[synthMode]; }
+let rPinch = [false, false, false, false];
 let arc = null;   // { ax, ay, sel } mientras el puño está cerrado
+const ARC_R = .2;   // radio del arco (fracción de la altura)
+const DRUM_LV = ["silencio", "fantasma", "base", "lleno", "fills"];
 const VOICE_LIST = ["saw", "square", "flute", "theremin", "acid", "pulse", "glass", "brass"];
 const VOICE_ES = { saw: "sierra", square: "cuadrada", flute: "flauta", theremin: "theremin", acid: "acid", pulse: "pulso", glass: "cristal", brass: "metal" };
 const fingerVoice = ["saw", "square", "theremin", "flute"];
@@ -1163,29 +1191,29 @@ const VOICES = [["índice", ""], ["corazón", ""], ["anular", ""], ["meñique", 
 VOICES.forEach((v, i) => v[1] = VOICE_ES[fingerVoice[i]]);
 let leadCut = .6;
 function renderHpSynth() {
-  const h = $("hpR"); h.hidden = !helpOn; const m = synthMode; h.style.pointerEvents = "auto";
-  const head = `<div class="h"><span>R / ${MODE_ES[m]}</span><small>puño → arco de modos</small></div>`;
-  if (m === "melody") h.innerHTML = head + `<div class="sec"><span class="k2">Pinza → voz</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${VOICES.map((v, i) => `<span class="opt" id="oV${i}" style="pointer-events:auto">${v[0]} · <select data-f="${i}" class="vsel" style="background:transparent;border:0;padding:0;color:inherit;font-size:10px;letter-spacing:.1em;text-transform:none">${VOICE_LIST.map(k => `<option value="${k}" ${fingerVoice[i] === k ? "selected" : ""}>${VOICE_ES[k]}</option>`).join("")}</select></span>`).join("")}</div></div><div class="sec"><span class="k2">Altura → nota</span><span class="st">${KEYS[key]} ${SCALES[scaleKey].name.toLowerCase()} · dos octavas</span></div><div class="sec"><span class="k2">Giro → cutoff</span><div class="meter"><i id="hpCut" style="width:60%"></i></div></div>`;
-  else if (m === "drums") h.innerHTML = head + `<div class="sec"><span class="k2">Pinza → familia · giro → presencia</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${["índice · bombo", "corazón · caja", "anular · charles", "meñique · toms"].map((v, i) => `<span class="opt" id="oV${i}">${v}</span>`).join("")}</div></div><div class="sec"><span class="k2">Silencio · fantasma · base · lleno · fills (frase de 4 compases)</span><div class="ladder" id="hpSc2"></div></div>`;
-  else if (m === "fx") h.innerHTML = head + `<div class="sec"><span class="k2">Pinza → efecto (mientras dure)</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${["índice · filtro", "corazón · crush", "anular · delay", "meñique · stutter"].map((v, i) => `<span class="opt" id="oV${i}">${v}</span>`).join("")}</div></div><div class="sec"><span class="k2">Giro → cantidad</span><div class="meter"><i id="hpCut" style="width:50%"></i></div></div>`;
-  else if (m === "sculpt") h.innerHTML = head + `<div class="sec"><span class="k2">Pinza + giro → esculpe el acorde (se queda)</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${["índice · arp", "corazón · envolvente", "anular · glide", "meñique · trémolo"].map((v, i) => `<span class="opt" id="oV${i}">${v}</span>`).join("")}</div></div><div class="sec"><span class="k2">Altura → grit · alcance → spread</span><div class="ladder" id="hpSc">${["arp", "env", "glide", "trem", "grit", "spread"].map(k => `<span>${k}</span><div class="lv">${[0,1,2,3].map(j => `<i class="${SCULPT[k] > j / 4 ? "on" : ""}"></i>`).join("")}</div>`).join("")}</div></div>`;
-  else h.innerHTML = head + `<div class="sec"><span class="k2">Pinza → aspecto · giro → cuánto</span><div class="opts" style="flex-direction:column;align-items:flex-end;gap:3px">${["índice · densidad", "corazón · notas del acorde", "anular · saltos de octava", "meñique · feel (recto · tresillo · galope)"].map((v, i) => `<span class="opt" id="oV${i}">${v}</span>`).join("")}</div></div><div class="sec"><span class="k2">Altura → resonancia</span><div class="ladder" id="hpSc2"></div></div>`;
-  setTimeout(renderDrumLadders, 0);
+  const h = $("hpR"); h.hidden = !helpOn; const m = synthMode; h.style.pointerEvents = "auto"; h.style.setProperty("--mc", MODE_COLOR[m]);
+  const fns = fingerFns(), vals = fingerVals();
+  const rows = FINGER_ES.map((f, i) => `<div class="frow" id="fr${i}"><span class="fn">${f}</span><span class="ff">${m === "melody" ? `<select data-f="${i}" class="vsel">${VOICE_LIST.map(k => `<option value="${k}" ${fingerVoice[i] === k ? "selected" : ""}>${VOICE_ES[k]}</option>`).join("")}</select>` : fns[i]}</span><span class="fb"><i style="width:${vals[i] === null ? 0 : Math.round(vals[i] * 100)}%"></i></span><span class="fv">${fingerText(i, vals[i])}</span></div>`).join("");
+  const how = { melody: "pinza un dedo = suena esa voz · altura = nota · giro = cutoff", drums: "pinza un dedo = esa familia · gira mientras pinzas = sube o baja un peldaño · suelta y se queda", bass: "pinza = aspecto · gira = cuánto · altura = resonancia", fx: "pinza = efecto mientras dure · giro = cantidad", sculpt: "pinza = parámetro del acorde · gira = valor · altura = grit · se queda" }[m];
+  h.innerHTML = `<div class="h"><span style="color:var(--mc)">R / ${MODE_ES[m]}</span><small>${how}</small></div><div class="frows">${rows}</div><div class="sec"><span class="k2">Puño con el dorso a la cámara → arco de modos · abre la mano para elegir</span></div>`;
+  if (m === "melody") { const hc = document.createElement("div"); hc.className = "sec"; hc.innerHTML = `<span class="k2">Giro → cutoff</span><div class="meter"><i id="hpCut" style="width:60%"></i></div>`; h.appendChild(hc); }
 }
+function fingerText(i, v) { if (v === null) return ""; if (synthMode === "drums") return DRUM_LV[Math.round(v * 4)]; if (synthMode === "bass" && i === 3) return v < .33 ? "recto" : v < .66 ? "tresillo" : "galope"; return Math.round(v * 100) + "%"; }
+function updateHpRows() { const vals = fingerVals(); for (let i = 0; i < 4; i++) { const r = $("fr" + i); if (!r) continue; r.classList.toggle("on", rPinch[i]); if (vals[i] !== null) { r.querySelector(".fb i").style.width = Math.round(vals[i] * 100) + "%"; r.querySelector(".fv").textContent = fingerText(i, vals[i]); } } }
 function drawArc(W, H) {
-  if (!arc) return; const cxp = W - arc.ax * W, cyp = arc.ay * H, R = Math.min(W, H) * .22;
+  if (!arc) return; const cxp = W - arc.ax * W, cyp = arc.ay * H, R = ARC_R * H;
   cx.save(); cx.translate(W, 0); cx.scale(-1, 1);
   cx.strokeStyle = "rgba(233,231,226,.25)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(cxp, cyp, R, Math.PI * .55, Math.PI * 1.45); cx.stroke();
   MODES.forEach(([k, name], i) => { const a = Math.PI * (.58 + i * .21); const x = cxp + Math.cos(a) * R, y = cyp + Math.sin(a) * R; const on = arc.sel === i;
-    cx.font = "11px Geist Mono, monospace"; const w = cx.measureText(name).width + 22; cx.fillStyle = on ? "rgba(233,231,226,.92)" : "rgba(6,7,10,.85)"; cx.fillRect(x - w, y - 11, w, 22); cx.strokeStyle = on ? "#e9e7e2" : "rgba(233,231,226,.3)"; cx.strokeRect(x - w, y - 11, w, 22);
+    cx.font = "11px Geist Mono, monospace"; const w = cx.measureText(name).width + 22; const mc = MODE_COLOR[k]; cx.fillStyle = on ? mc : "rgba(6,7,10,.85)"; cx.fillRect(x - w, y - 11, w, 22); cx.strokeStyle = on ? mc : mc + "66"; cx.strokeRect(x - w, y - 11, w, 22);
     cx.fillStyle = on ? "#06070a" : "rgba(233,231,226,.7)"; cx.textAlign = "right"; cx.fillText(name, x - 11, y + 4); cx.fillStyle = "rgba(233,231,226,.4)"; cx.font = "9px Geist Mono, monospace"; cx.fillText("0" + (i + 1), x - w + 14, y + 3); });
-  cx.fillStyle = "rgba(233,231,226,.6)"; cx.font = "9px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText("MODO", cxp, cyp + R + 22); cx.fillStyle = "rgba(233,231,226,.4)"; cx.fillText("MUEVE · MANO ABIERTA = ELIGE · FUERA = CANCELA", cxp, cyp + R + 36);
+  cx.fillStyle = "rgba(233,231,226,.6)"; cx.font = "9px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText("MODO", cxp, cyp + R + 22); cx.fillStyle = "rgba(233,231,226,.4)"; cx.fillText("MUEVE EL PUÑO · ABRE LA MANO = ELIGE · ENSEÑA LA PALMA = CANCELA", cxp, cyp + R + 36);
   cx.restore();
 }
 function drawNoteLine(W, H, lm, label) {
   const px = W - lm[9].x * W, py = lm[9].y * H, lx = W - 26 - 10;   // escalera derecha
-  cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.setLineDash([2, 6]); cx.strokeStyle = "rgba(233,231,226,.45)"; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(px + 30, py); cx.lineTo(lx - 60, py); cx.stroke(); cx.setLineDash([]);
-  cx.fillStyle = "#e9e7e2"; cx.font = "16px Geist Mono, monospace"; cx.textAlign = "right"; cx.fillText(label, lx - 66, py + 5); cx.restore();
+  cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.setLineDash([2, 6]); cx.strokeStyle = MODE_COLOR.melody + "88"; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(px + 30, py); cx.lineTo(lx - 60, py); cx.stroke(); cx.setLineDash([]);
+  cx.fillStyle = MODE_COLOR.melody; cx.font = "16px Geist Mono, monospace"; cx.textAlign = "right"; cx.fillText(label, lx - 66, py + 5); cx.restore();
 }
 function processSynth(hands, now) {
   let ch = null, sh = null;
@@ -1207,60 +1235,77 @@ function processSynth(hands, now) {
   } else { handPos.L = null; poseHist = []; handY = null; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } padStop(); $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; }
   // mano derecha según modo
   if (sh) {
-    const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), palm = d3(lm[0], lm[9]), fist = !e[1] && !e[2] && !e[3] && !e[4] && d3(lm[4], lm[8]) > .3 * palm;
+    const lm = sh.lm, y = lm[9].y, palm = Math.max(1e-4, d3(lm[0], lm[9]));
+    // dorso hacia la cámara (la pinza se hace de palma o de canto; el puño, de dorso)
+    const back = (palmSign(lm) > 0) !== swapped;
+    const curled = [[6,8],[10,12],[14,16],[18,20]].map(([pip, tip]) => d3(lm[tip], lm[0]) < d3(lm[pip], lm[0]) * 1.04);
+    const nCurl = curled.filter(Boolean).length, fistNow = back && nCurl === 4;
+    const R = synthState.R; R.fistN = fistNow ? (R.fistN || 0) + 1 : 0;
+    // arco de modos: puño de dorso (3 cuadros) → aparece anclado · mover → resalta la celda más cercana · abrir la mano → elige · enseñar la palma → cancela
+    if (!arc) { if (R.fistN >= 3) arc = { ax: lm[9].x, ay: y, sel: MODES.findIndex(m => m[0] === synthMode), t: now, open: 0 }; }
+    else {
+      if (!back) { arc = null; }                                            // palma → cancela
+      else if (nCurl <= 1) { if (++arc.open >= 2) { if (arc.sel >= 0) setSynthMode(MODES[arc.sel][0]); arc = null; } }   // mano abierta → elige
+      else { arc.open = 0; if (now - arc.t > 200) { const asp = canvas.width / canvas.height, hx = lm[9].x, hy = y; let best = arc.sel, bd = 9;
+          MODES.forEach((_, i) => { const a = Math.PI * (.58 + i * .21); const cxn = arc.ax - Math.cos(a) * ARC_R / asp, cyn = arc.ay + Math.sin(a) * ARC_R; const d = Math.hypot((hx - cxn) * asp, hy - cyn); if (d < bd) { bd = d; best = i; } });
+          const dHome = Math.hypot((hx - arc.ax) * asp, hy - arc.ay); if (dHome > .03) arc.sel = best; } }
+    }
+    // pinza: pulgar contra la punta más cercana (con histéresis) · nunca mientras hay puño o arco
     const dists = [8,12,16,20].map(tip => d3(lm[4], lm[tip]) / palm), minI = dists.indexOf(Math.min(...dists));
-    const pin = [false, false, false, false]; if (!fist) { const prev = synthState.R.pinch.findIndex(Boolean); if (prev >= 0 && dists[prev] < .34) pin[prev] = true; else if (dists[minI] < .24) pin[minI] = true; }
-    // arco de modos: puño → aparece anclado · mover → resalta · abrir → elige
-    if (fist) { if (!arc) arc = { ax: lm[9].x, ay: y, sel: MODES.findIndex(m => m[0] === synthMode), t: now };
-      else if (now - arc.t > 250) { const dx = (arc.ax - lm[9].x) * (canvas.width / canvas.height), dy = y - arc.ay; if (Math.hypot(dx, dy) > .04) { const a = Math.atan2(dy, -dx); let best = 0, bd = 9; MODES.forEach((_, i) => { const am = Math.PI * (.58 + i * .21) - Math.PI; const d = Math.abs(Math.atan2(Math.sin(a - am), Math.cos(a - am))); if (d < bd) { bd = d; best = i; } }); arc.sel = best; } } }
-    else if (arc) { if (now - arc.t > 250 && arc.sel >= 0) setSynthMode(MODES[arc.sel][0]); arc = null; }
-    const r = rollOf(lm, "R", sh.wl); rollS = rollS === null ? r : rollS * .75 + r * .25;
+    const pin = [false, false, false, false];
+    if (!arc && !fistNow) { const prev = R.pinch.findIndex(Boolean); if (prev >= 0 && dists[prev] < .36) pin[prev] = true; else if (dists[minI] < .25) pin[minI] = true; }
+    const r = rollOf(lm, "R", sh.wl); rollS = rollS === null ? r : rollS * .7 + r * .3;
+    // control relativo: al pinzar, el valor arranca donde estaba y el giro lo mueve (sin saltos)
+    const grabbed = i => { if (!R.pinch[i] || !R.grab) R.grab = { i, r0: rollS, v0: null }; return R.grab; };
+    const relVal = (i, cur, step = 0) => { const g = grabbed(i); if (g.v0 === null) g.v0 = cur; let v = Math.max(0, Math.min(1, g.v0 + (rollS - g.r0) * 1.5)); if (step) v = Math.round(v * step) / step; return v; };
+    const pinchPt = pin.some(Boolean) ? { x: (lm[4].x + lm[[8,12,16,20][pin.findIndex(Boolean)]].x) / 2, y: (lm[4].y + lm[[8,12,16,20][pin.findIndex(Boolean)]].y) / 2 } : null;
     if (!arc) {
       pinchInfo = null;
       if (synthMode === "melody") {
         leadCut = rollS; if (lead) lead.fl.frequency.setTargetAtTime(500 * Math.pow(2, leadCut * 3.5), ctx.currentTime, .05);
         const which = pin.findIndex(Boolean), m = leadNoteFor(y);
-        if (which >= 0) { if (lead && lead.finger !== which) leadOff(); leadOn(m, which); $("plateR").textContent = `melodía · ${noteName(m)} · ${VOICES[which][1]}`; }
+        if (which >= 0) { if (lead && lead.finger !== which) leadOff(); leadOn(m, which); $("plateR").textContent = `melodía · ${noteName(m)} · ${VOICES[which][1]}`; pinchInfo = { name: VOICES[which][1], value: leadCut, text: noteName(m), pt: pinchPt }; }
         else { leadOff(); $("plateR").textContent = `melodía · ${noteName(m)} · pinza para sonar`; }
         setLadder("ladR", y, noteName(m)); synthLine = { lm, label: noteName(m) };
-        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", which === i); } const hc = $("hpCut"); if (hc) hc.style.width = Math.round(leadCut * 100) + "%";
+        updateHpRows(); const hc = $("hpCut"); if (hc) hc.style.width = Math.round(leadCut * 100) + "%";
       } else if (synthMode === "drums") {
-        // pinza = familia · giro mientras pinzas = presencia (silencio → fantasma → base → lleno → fills) · suéltala y se queda · giro a 0 la apaga
-        pin.forEach((c, i) => { if (c) { const v = Math.round(rollS * 100) / 100; if (DRUMP[i] !== v) { DRUMP[i] = v; renderDrumLadders(); } if (!synthState.R.pinch[i]) DRUMS[i](ctx.currentTime, .9); } });
-        const fam = ["bombo", "caja", "charles", "toms"], lv = ["silencio", "fantasma", "base", "lleno", "fills"]; { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: fam[pi0], value: DRUMP[pi0], text: lv[Math.round(DRUMP[pi0] * 4)] } : null; }
-        $("plateR").textContent = `batería · ${fam.map((f, i) => f + " " + lv[Math.round(DRUMP[i] * 4)]).join(" · ")}`; const pi = pin.findIndex(Boolean); setLadder("ladR", y, pi >= 0 ? fam[pi].toUpperCase() + " · " + lv[Math.round(rollS * 4)] : "PINZA = FAMILIA"); synthLine = null;
-        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); }
+        // pinza = familia · giro mientras pinzas = presencia en 5 peldaños · suéltala y se queda · baja al suelo y se apaga
+        pin.forEach((c, i) => { if (c) { const v = relVal(i, DRUMP[i], 4); if (DRUMP[i] !== v) { DRUMP[i] = v; renderDrumLadders(); } if (!R.pinch[i]) DRUMS[i](ctx.currentTime, .9); } });
+        const fam = ["bombo", "caja", "charles", "toms"], lv = DRUM_LV; { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: fam[pi0], value: DRUMP[pi0], text: lv[Math.round(DRUMP[pi0] * 4)], pt: pinchPt } : null; }
+        $("plateR").textContent = `batería · ${fam.map((f, i) => f + " " + lv[Math.round(DRUMP[i] * 4)]).join(" · ")}`; const pi = pin.findIndex(Boolean); setLadder("ladR", y, pi >= 0 ? fam[pi].toUpperCase() + " · " + lv[Math.round(DRUMP[pi] * 4)] : "PINZA = FAMILIA"); synthLine = null;
+        updateHpRows();
       } else if (synthMode === "fx") {
-        pin.forEach((c, i) => { if (c !== !!synthState.R.pinch[i]) fxSet(i, c, rollS); else if (c) fxSet(i, true, rollS); });
-        { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: ["filtro", "crush", "delay", "stutter"][pi0], value: rollS, text: Math.round(rollS * 100) + "%" } : null; }
-        $("plateR").textContent = `fx · ${pin.some(Boolean) ? ["filtro", "crush", "delay", "stutter"].filter((_, i) => pin[i]).join(" + ") : "pinza = efecto"} · giro ${Math.round(rollS * 60)}°`; setLadder("ladR", y, "FX"); synthLine = null;
-        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); } const hc = $("hpCut"); if (hc) hc.style.width = Math.round(rollS * 100) + "%";
+        pin.forEach((c, i) => { if (c !== !!R.pinch[i]) fxSet(i, c, rollS); else if (c) fxSet(i, true, rollS); });
+        { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: ["filtro", "crush", "delay", "stutter"][pi0], value: rollS, text: Math.round(rollS * 100) + "%", pt: pinchPt } : null; }
+        $("plateR").textContent = `fx · ${pin.some(Boolean) ? ["filtro", "crush", "delay", "stutter"].filter((_, i) => pin[i]).join(" + ") : "pinza = efecto"} · giro ${Math.round(rollS * 100)}%`; setLadder("ladR", y, "FX"); synthLine = null;
+        updateHpRows(); const hc = $("hpCut"); if (hc) hc.style.width = Math.round(rollS * 100) + "%";
       } else if (synthMode === "sculpt") {
         const keys = ["arp", "env", "glide", "trem"]; let changed = false;
-        pin.forEach((c, i) => { if (c) { const v = Math.round(rollS * 20) / 20; if (SCULPT[keys[i]] !== v) { SCULPT[keys[i]] = v; changed = true; } } });
-        { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: ["arp", "envolvente", "glide", "trémolo"][pi0], value: SCULPT[keys[pi0]], text: Math.round(SCULPT[keys[pi0]] * 100) + "%" } : null; }
+        pin.forEach((c, i) => { if (c) { const v = relVal(i, SCULPT[keys[i]], 20); if (SCULPT[keys[i]] !== v) { SCULPT[keys[i]] = v; changed = true; } } });
+        { const pi0 = pin.findIndex(Boolean); pinchInfo = pi0 >= 0 ? { name: ["arp", "envolvente", "glide", "trémolo"][pi0], value: SCULPT[keys[pi0]], text: Math.round(SCULPT[keys[pi0]] * 100) + "%", pt: pinchPt } : null; }
         const grit = Math.round(Math.max(0, Math.min(1, 1.25 - y)) * 4) / 4; if (pin.some(Boolean) && SCULPT.grit !== grit) { SCULPT.grit = grit; changed = true; }
         const spread = Math.round(Math.max(0, Math.min(1, (lm[9].x - .05) / .45)) * 4) / 4; if (pin.some(Boolean) && SCULPT.spread !== spread) { SCULPT.spread = spread; changed = true; }
         if (changed) { padCutoff(rollL || 0); if (pin[1] || pin[3]) padRetrigger(); const hs = $("hpSc"); if (hs) hs.innerHTML = ["arp", "env", "glide", "trem", "grit", "spread"].map(k => `<span>${k}</span><div class="lv">${[0,1,2,3].map(j => `<i class="${SCULPT[k] > j / 4 ? "on" : ""}"></i>`).join("")}</div>`).join(""); }
         $("plateR").textContent = `sculpt · arp ${SCULPT.arp} · env ${SCULPT.env} · glide ${SCULPT.glide} · trem ${SCULPT.trem} · grit ${SCULPT.grit} · spread ${SCULPT.spread}`; setLadder("ladR", y, "GRIT " + SCULPT.grit); synthLine = null;
-        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); }
+        updateHpRows();
       } else {
         // bajo: pinza = aspecto (densidad, notas del acorde, saltos de octava, feel) · giro = cuánto · altura = resonancia
-        const keysB = ["density", "tones", "octaves", "feel"]; pin.forEach((c, i) => { if (c) { bassOn = true; const v = Math.round(rollS * 100) / 100; if (BASSA[keysB[i]] !== v) { BASSA[keysB[i]] = v; renderDrumLadders(); } } });
-        { const pi0 = pin.findIndex(Boolean), labB = ["densidad", "notas", "octavas", "feel"]; pinchInfo = pi0 >= 0 ? { name: labB[pi0], value: BASSA[keysB[pi0]], text: pi0 === 3 ? (BASSA.feel < .33 ? "recto" : BASSA.feel < .66 ? "tresillo" : "galope") : Math.round(BASSA[keysB[pi0]] * 100) + "%" } : null; }
+        const keysB = ["density", "tones", "octaves", "feel"]; pin.forEach((c, i) => { if (c) { bassOn = true; const v = relVal(i, BASSA[keysB[i]], 4); if (BASSA[keysB[i]] !== v) { BASSA[keysB[i]] = v; renderDrumLadders(); } } });
+        { const pi0 = pin.findIndex(Boolean), labB = ["densidad", "notas", "octavas", "feel"]; pinchInfo = pi0 >= 0 ? { name: labB[pi0], value: BASSA[keysB[pi0]], text: fingerText(pi0, BASSA[keysB[pi0]]), pt: pinchPt } : null; }
         bassRes = Math.max(0, Math.min(1, 1.25 - y));
         const lab = ["densidad", "notas", "octavas", "feel"], pi = pin.findIndex(Boolean);
-        $("plateR").textContent = `bajo${bassOn ? "" : " · pinza para arrancar"} · densidad ${BASSA.density.toFixed(2)} · notas ${BASSA.tones.toFixed(2)} · octavas ${BASSA.octaves.toFixed(2)} · feel ${BASSA.feel < .33 ? "recto" : BASSA.feel < .66 ? "tresillo" : "galope"}`; setLadder("ladR", y, pi >= 0 ? lab[pi].toUpperCase() + " " + Math.round(rollS * 3) / 3 : "RESONANCIA " + bassRes.toFixed(1)); synthLine = null;
-        for (let i = 0; i < 4; i++) { const el = $("oV" + i); if (el) el.classList.toggle("on", pin[i]); }
+        $("plateR").textContent = `bajo${bassOn ? "" : " · pinza para arrancar"} · densidad ${BASSA.density.toFixed(2)} · notas ${BASSA.tones.toFixed(2)} · octavas ${BASSA.octaves.toFixed(2)} · feel ${BASSA.feel < .33 ? "recto" : BASSA.feel < .66 ? "tresillo" : "galope"}`; setLadder("ladR", y, pi >= 0 ? lab[pi].toUpperCase() + " " + fingerText(pi, BASSA[keysB[pi]]) : "RESONANCIA " + bassRes.toFixed(1)); synthLine = null;
+        updateHpRows();
       }
-    } else { leadOff(); $("plateR").textContent = "modo · mueve el puño y ábrelo para elegir"; synthLine = null; }
-    synthState.R.pinch = pin.map(Boolean); $("ladR").hidden = !!arc; handPos.R = lm; rightVel = Math.max(.3, Math.min(1, 1.25 - y));
-    if ($("hpR").hidden && helpOn) renderHpSynth();
-  } else { handPos.R = null; leadOff(); arc = null; synthLine = null; if (fx) [0,1,2,3].forEach(i => fxSet(i, false)); synthState.R.pinch = [0,0,0,0]; rollS = null; $("plateR").textContent = `fuera · modo ${MODE_ES[synthMode]} · puño = arco de modos`; $("ladR").hidden = true; $("hpR").hidden = true; }
+    } else { leadOff(); pinchInfo = null; $("plateR").textContent = `modo · ${MODES[arc.sel][1].toLowerCase()} · abre la mano para elegir · palma = cancela`; synthLine = null; }
+    if (!pin.some(Boolean)) R.grab = null;
+    synthState.R.pinch = pin.map(Boolean); rPinch = pin.slice(); $("ladR").hidden = !!arc; handPos.R = lm; rightVel = Math.max(.3, Math.min(1, 1.25 - y));
+    if ($("hpR").hidden && helpOn) renderHpSynth(); if (!$("hpR").querySelector(".frows") && helpOn) renderHpSynth();
+  } else { handPos.R = null; leadOff(); arc = null; synthLine = null; if (fx) [0,1,2,3].forEach(i => fxSet(i, false)); synthState.R.pinch = [0,0,0,0]; synthState.R.grab = null; synthState.R.fistN = 0; rollS = null; $("plateR").textContent = `fuera · modo ${MODE_ES[synthMode]} · puño = arco de modos`; $("ladR").hidden = true; $("hpR").hidden = true; }
 }
 let synthLine = null, pinchInfo = null;
-function setSynthMode(m) { synthMode = m; $("modeSel").value = m; leadOff(); if (fx) [0,1,2,3].forEach(i => fxSet(i, false)); if (!$("perf").hidden) renderHpSynth(); $("songLbl").textContent = playing ? song.title : ("Synth · " + MODE_ES[m]); }
-const TX_LINE = .62, TX_REARM = .56;
+function setSynthMode(m) { synthMode = m; $("modeSel").value = m; leadOff(); $("modeBig").hidden = inst !== "synth"; $("modeBigName").textContent = MODE_ES[m]; $("modeBig").style.setProperty("--mc", MODE_COLOR[m]); if (fx) [0,1,2,3].forEach(i => fxSet(i, false)); if (!$("perf").hidden) renderHpSynth(); $("songLbl").textContent = playing ? song.title : ("Synth · " + MODE_ES[m]); }
+const TX_LINE = .78, TX_REARM = .7;
 let ttakun = false;
 function processTxala(hands, now) {
   const roles = hands.length === 2 ? [[hands[1], "L"], [hands[0], "R"]] : hands.length === 1 ? [[hands[0], hands[0].x > .5 ? "L" : "R"]] : [];
@@ -1269,13 +1314,15 @@ function processTxala(hands, now) {
     // la punta de la makila es el punto más bajo de la mano
     let tip = lm[8]; lm.forEach(q => { if (q.y > tip.y) tip = q; });
     const y = tip.y;
-    if (st.y !== null) { const dt = Math.max(.008, (now - st.t) / 1000), vy = (y - st.y) / dt; st.v = vy;
+    if (st.y !== null) { const dt = Math.max(.008, (now - st.t) / 1000), vy = (y - st.y) / dt; const prev = st.v || 0; st.v = vy;
       const plank = Math.min(PLANKS.length - 1, Math.max(0, Math.floor((1 - tip.x) * PLANKS.length)));
-      if (st.armed && st.y < TX_LINE && y >= TX_LINE && vy > .2) { plankHit(plank, ctx.currentTime, Math.min(1, .45 + vy / 3)); st.armed = false; txalaCount[k]++; flashes.push({ x: tip.x, y: TX_LINE, t: performance.now(), down: true }); }
-      if (y < TX_REARM) st.armed = true; }
+      // golpe = bajada rápida que empieza a frenar (pico de velocidad), a cualquier altura
+      // golpe en el primer cuadro de bajada rápida (sin esperar al pico) · se rearma en cuanto la mano deja de bajar
+      if (st.armed && vy > .8) { plankHit(plank, ctx.currentTime, Math.min(1, .45 + vy / 4)); st.armed = false; txalaCount[k]++; flashes.push({ x: tip.x, y: tip.y, t: performance.now(), down: true }); st.lastPlank = plank; }
+      if (vy < .15) st.armed = true; }
     st.y = y; st.t = now; st.tip = tip;
   });
-  $("plateL").textContent = handPos.L ? `${txalaCount.L} golpes · ${txalaHands.L.armed ? "arriba" : "abajo"}` : "fuera de cuadro"; $("plateR").textContent = handPos.R ? `${txalaCount.R} golpes · ${txalaHands.R.armed ? "arriba" : "abajo"}` : "fuera de cuadro";
+  $("plateL").textContent = handPos.L ? `${txalaCount.L} golpes${txalaHands.L.lastPlank !== undefined ? " · " + PLANKS[txalaHands.L.lastPlank].name : ""}` : "fuera de cuadro"; $("plateR").textContent = handPos.R ? `${txalaCount.R} golpes${txalaHands.R.lastPlank !== undefined ? " · " + PLANKS[txalaHands.R.lastPlank].name : ""}` : "fuera de cuadro";
   $("hpL").hidden = true; $("hpR").hidden = true; $("ladL").hidden = true; $("ladR").hidden = true;
 }
 function drawTxala(W, H) {
@@ -1286,7 +1333,9 @@ function drawTxala(W, H) {
     cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.fillStyle = "rgba(233,231,226,.75)"; cx.font = "11px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText(PLANKS[i].name.toUpperCase(), (i + .5) * w, y0 + hh - 8); cx.fillStyle = "rgba(233,231,226,.35)"; cx.font = "9px Geist Mono, monospace"; cx.fillText(PLANKS[i].f + " HZ", (i + .5) * w, y0 + hh + 12); cx.restore(); }
   // puntas de las makilak
   ["L", "R"].forEach(k => { const st = txalaHands[k]; if (!st.tip || st.y === null) return; cx.fillStyle = st.armed ? "rgba(159,211,255,.9)" : "rgba(233,231,226,.5)"; cx.beginPath(); cx.arc(st.tip.x * W, st.tip.y * H, 7, 0, 7); cx.fill(); });
-  cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.fillStyle = "rgba(233,231,226,.4)"; cx.font = "10px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText("BAJA LA MANO HASTA CRUZAR LA TABLA · SUBE PARA REARMAR", W / 2, y0 - 10); cx.restore();
+  // guías verticales de zona
+  cx.strokeStyle = "rgba(233,231,226,.12)"; cx.setLineDash([3, 9]); for (let i = 1; i < N; i++) { cx.beginPath(); cx.moveTo(i * w, H * .1); cx.lineTo(i * w, y0); cx.stroke(); } cx.setLineDash([]);
+  cx.save(); cx.translate(W, 0); cx.scale(-1, 1); cx.fillStyle = "rgba(233,231,226,.4)"; cx.font = "10px Geist Mono, monospace"; cx.textAlign = "center"; cx.fillText("GOLPEA HACIA ABAJO, A CUALQUIER ALTURA · LA ZONA ELIGE LA TABLA", W / 2, y0 - 10); cx.restore();
 }
 
 /* ================= ARRANQUE ================= */
@@ -1298,7 +1347,7 @@ async function start() {
     if (location.protocol !== "file:" && location.protocol !== "http:" && location.protocol !== "https:") throw new Error("Este visor no permite cámara ni descargas. Abre el archivo en una pestaña de Chrome.");
     if (window.self !== window.top) throw new Error("La página está dentro de un visor incrustado. Ábrela directamente en una pestaña de Chrome.");
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-    landmarker = await HandLandmarker.createFromOptions(vision, { baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task", delegate: "GPU" }, runningMode: "VIDEO", numHands: 2, minHandDetectionConfidence: .5, minHandPresenceConfidence: .5, minTrackingConfidence: .5 });
+    landmarker = await HandLandmarker.createFromOptions(vision, { baseOptions: { modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task", delegate: "GPU" }, runningMode: "VIDEO", numHands: 2, minHandDetectionConfidence: .4, minHandPresenceConfidence: .4, minTrackingConfidence: .3 });
     $("diag").textContent = "pidiendo cámara…";
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
     video.srcObject = stream; await video.play(); canvas.width = video.videoWidth || 1280; canvas.height = video.videoHeight || 720;
@@ -1314,7 +1363,7 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-window.__uke = { processHands, extended, get samplesReady() { return samplesReady; }, SAMPLES, get arc() { return arc; }, get synthMode() { return synthMode; }, get state() { return { live, chord, density, rightVel, playing, T, slots: slotsNow(), rollL, rollVal, rollDbg }; }, startTransport, initAudio: () => { initAudio(); }, countPlucks: 0 };
+window.__uke = { processHands, extended, get samplesReady() { return samplesReady; }, SAMPLES, get arc() { return arc; }, get synthMode() { return synthMode; }, get lead() { return lead; }, DRUMP, get rPinch() { return rPinch; }, get rollS() { return rollS; }, get pinchInfo() { return pinchInfo; }, get state() { return { live, chord, density, rightVel, playing, T, slots: slotsNow(), rollL, rollVal, rollDbg }; }, startTransport, initAudio: () => { initAudio(); }, countPlucks: 0 };
 const _pluck = pluck; pluck = (...a) => { window.__uke.countPlucks++; return _pluck(...a); };
 /* ================= TOMA (grabación en el navegador) ================= */
 let rec = null, recChunks = [], recCanvas = null, recRaf = null, recDest = null;
