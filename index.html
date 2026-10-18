@@ -72,6 +72,12 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .lesson td:last-child{text-align:right;color:var(--ink-92)}
 .lesson tr.on td{background:var(--ink-08);color:var(--ink)}
 .lesson tr.on{outline:1px solid var(--ink-38)}
+.lesson .lvs{display:grid;gap:4px;align-content:center;min-width:190px}
+.lesson .lv{padding:6px 10px;border:1px solid var(--ink-08);color:var(--ink-38);font-size:11px;letter-spacing:.08em;display:flex;gap:10px;align-items:baseline;transition:all .2s}
+.lesson .lv.on{border-color:var(--ink-62);color:var(--ink);background:var(--ink-08)}
+.lesson .slots{display:flex;gap:6px;align-items:center;align-self:center;flex-wrap:wrap;max-width:200px}
+.lesson .slot{width:20px;height:28px;display:grid;place-items:center;border:1px solid var(--ink-16);color:var(--ink-38);font-size:14px;transition:all .1s}
+.lesson .slot.on{border-color:var(--ink);color:var(--ink);background:var(--ink-08)}
 .lesson .cap{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;color:var(--ink-62)}
 .dots{display:flex;gap:4px}.dots i{width:4px;height:4px;background:var(--ink-16)}.dots i.on{background:var(--ink)}
 .nav{display:flex;justify-content:center;align-items:center;gap:14px}
@@ -156,7 +162,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .hp .ladder{display:grid;grid-template-columns:1fr auto;gap:3px 10px;align-items:center}
 .hp .ladder .lv{display:flex;gap:2px}.hp .ladder .lv i{width:4px;height:9px;background:rgba(233,231,226,.12)}.hp .ladder .lv i.on{background:var(--ink)}
 .hp .ladder span{font-size:10px;color:var(--ink-38);letter-spacing:.1em;text-transform:none;padding:2px 8px;background:rgba(0,0,0,.28);border:1px solid rgba(233,231,226,.05)}.hp .ladder span.on{color:var(--ink);border-color:var(--ink-62);background:rgba(233,231,226,.1)}
-.hp .meter{height:3px;background:rgba(0,0,0,.4);border:1px solid rgba(233,231,226,.1);position:relative}.hp .meter i{position:absolute;right:0;top:0;bottom:0;background:var(--ink-62)}
+.hp .meter{height:3px;background:rgba(0,0,0,.4);border:1px solid rgba(233,231,226,.1);position:relative}.hp .meter i{position:absolute;right:0;top:0;bottom:0;background:var(--ink-62)}.hp.l .meter i{right:auto;left:0}
 .hp .st{color:var(--ink-62);font-size:10px}
 @media (max-width:900px){.hp{display:none}}
 .plate{position:absolute;left:0;right:0;bottom:0;height:72px;background:linear-gradient(180deg,transparent,rgba(6,7,10,.6) 60%);text-shadow:0 0 6px #000;display:grid;grid-template-columns:1fr auto 1fr;align-items:end;padding:0 46px 12px}
@@ -166,17 +172,29 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
 .plate .beats{display:flex;gap:8px;padding-bottom:2px;font-size:16px;line-height:1;color:var(--ink-38);font-variant-numeric:tabular-nums}.plate .beats i{font-style:normal;width:14px;text-align:center;transition:color .05s,transform .05s}.plate .beats i.on{color:var(--ink);transform:scale(1.35)}.plate .beats i.one{color:var(--ink-62)}.plate .beats i.one.on{color:var(--ink)}
 .plate .rule{grid-column:1/-1;height:1px;background:var(--ink-16);margin-top:8px;position:relative}
 .plate .rule i{position:absolute;left:0;top:0;height:1px;background:var(--ink);width:0}
-.bar{display:flex;align-items:center;gap:0 0;min-height:60px;border-top:1px solid var(--ink-16);padding:0 18px;flex-wrap:wrap;row-gap:0}
-.bar .grp{display:flex;align-items:center;gap:12px;padding:8px 14px;border-left:1px solid var(--ink-16);min-height:60px;white-space:nowrap}
-.bar .grp:first-child{border-left:0;padding-left:0}
-.bar .grp .no{font-size:11px;letter-spacing:.16em;color:var(--ink-38)}
-.bar .grp .no b{font-weight:400;color:var(--ink);margin-left:6px}
-.bar .fld{display:grid;gap:2px}
-.bar .fld .k{font-size:9px}
+.bar{position:relative;display:flex;align-items:stretch;height:60px;border-top:1px solid var(--ink-16);padding:0 14px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.bar::-webkit-scrollbar{display:none}
+.bar .grp{display:flex;align-items:center;gap:18px;padding:0 26px;border-left:1px solid var(--ink-16);white-space:nowrap;flex:none}
+.bar .grp:first-child{border-left:0;padding-left:4px}
+.bar .grp.right{margin-left:auto;gap:10px}
+.bar .grp .no{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-92);display:flex;gap:8px;align-items:baseline}
+.bar .grp .no::before{content:attr(data-n);color:var(--ink-38);font-size:10px}
+.bar .grp .no b{font-weight:400}
+.bar .fld{display:grid;gap:4px;align-content:center}
+.bar .fld .k{font-size:8px;letter-spacing:.2em;color:var(--ink-38);text-transform:uppercase}
+.bar select,.bar .box{appearance:none;-webkit-appearance:none;background:#0b0d12;border:1px solid rgba(233,231,226,.16);color:var(--ink-92);height:26px;padding:0 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;min-width:54px;line-height:24px}
+.bar select:hover{border-color:var(--ink-62)}
+.bar select{max-width:132px;text-overflow:ellipsis}#song{max-width:168px}#key{min-width:48px}
+.bar .grp{padding:0 20px;gap:14px}
+.bar .fld .rg{display:flex;gap:8px;align-items:center;height:26px}
+.bar input[type=range]{width:64px}
+.bar .num{font-size:11px;color:var(--ink-92);min-width:24px;text-align:right}
+.bar button{height:30px;padding:0 14px;font-size:11px;letter-spacing:.18em;border-color:var(--ink-38);color:var(--ink-92)}
+.bar label.k{font-size:8px;letter-spacing:.2em;display:grid;gap:6px;justify-items:center}
 .bar .mid{display:none}
-.bar .cross{color:var(--ink-38);font-size:14px}
-.bar .grp.right{border-left:0;margin-left:auto}
-.score .v{font-size:14px;color:var(--ink);letter-spacing:.1em}
+.bar .cross{position:absolute;top:-6px;color:var(--ink-38);font-size:11px;line-height:1}
+.bar .cross.l{left:12px}.bar .cross.r{right:12px}
+.score .v{font-size:13px;color:var(--ink);letter-spacing:.1em;height:26px;line-height:26px}
 .summary{position:absolute;inset:0;display:grid;place-items:center;background:rgba(6,7,10,.86)}
 .summary .box{border:1px solid var(--ink-16);background:var(--bg);padding:26px 30px;display:grid;gap:14px;width:min(460px,92%)}
 .summary .big{font-size:40px;color:var(--ink);letter-spacing:.06em;line-height:1}
@@ -189,7 +207,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
   .tr{top:12px}.clock{display:none}
   .center{top:60px;width:92%}.lyr{width:92%;bottom:84px}.brand{display:none}
   .plate{padding:0 16px 10px}
-  .bar{height:auto;padding:8px 12px;grid-template-columns:1fr}.bar .grp{padding:6px 0;border-left:0;height:auto;flex-wrap:wrap}.bar .mid{display:none}
+  .bar{height:auto;flex-wrap:wrap;padding:8px 12px}.bar .grp{padding:6px 12px;flex-wrap:wrap}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -212,7 +230,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
       <span class="fail" id="fail"></span>
     </div>
     <hr>
-    <div class="foot"><span class="k">Síntesis de cuerda en tiempo real · MediaPipe · Web Audio</span><span class="k" id="diag"></span></div>
+    <div class="foot"><span class="k">Built by <a href="https://joxemari.github.io/hoks" target="_blank" rel="noopener">hoks</a></span><span class="k" id="diag"></span><span class="k">Síntesis de cuerda · MediaPipe · Web Audio · nada sale de tu dispositivo</span></div>
   </div>
 </section>
 
@@ -230,6 +248,7 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
         <div class="h"><span>L / Acordes</span><small id="hpLst">palma</small><button class="x" data-hp="hpL">cerrar</button></div>
         <table id="hpTable"></table>
         <div class="sec"><span class="k2">Calidad · gira la mano</span><div class="opts"><span class="opt" id="oPalm">palma · mayor</span><span class="opt" id="oBack">dorso · menor</span></div></div>
+        <div class="sec"><span class="k2">Giro de muñeca → más ritmo</span><div class="meter"><i id="hpRollL" style="width:0%"></i></div></div>
         <div class="sec"><span class="k2">Altura · sube la mano</span><div class="opts"><span class="opt" id="oL0">básico</span><span class="opt" id="oL1">séptima</span><span class="opt" id="oL2">agudo</span><span class="opt" id="oL3">muy agudo</span></div></div>
       </aside>
       <aside class="hp r" id="hpR" hidden>
@@ -261,27 +280,28 @@ hr{border:0;border-top:1px solid var(--ink-16);margin:0}
     </div>
   </div>
   <div class="bar">
-    <div class="grp"><span class="no">01<b>Hoja</b></span>
+    <span class="cross l">+</span><span class="cross r">+</span>
+    <div class="grp"><span class="no" data-n="01"><b>Hoja</b></span>
       <div class="fld"><span class="k">Tono</span><select id="key"></select></div>
       <div class="fld"><span class="k">Escala</span><select id="scale"></select></div>
-      <div class="fld"><span class="k">BPM</span><span style="display:flex;gap:8px;align-items:center"><input type="range" id="tempo" min="50" max="160" value="90"><span class="num" id="tempoVal" style="color:var(--ink)">90</span></span></div>
-      <div class="fld"><span class="k">Swing</span><span style="display:flex;gap:8px;align-items:center"><input type="range" id="swing" min="50" max="75" value="50" style="width:60px"><span class="num" id="swingVal" style="color:var(--ink)">50</span></span></div>
+      <div class="fld"><span class="k">BPM</span><span class="rg"><input type="range" id="tempo" min="50" max="160" value="90"><span class="num" id="tempoVal">90</span></span></div>
+      <div class="fld"><span class="k">Swing</span><span class="rg"><input type="range" id="swing" min="50" max="75" value="50"><span class="num" id="swingVal">50</span></span></div>
     </div>
-    <div class="grp"><span class="no">02<b>Acordes</b></span>
+    <div class="grp"><span class="no" data-n="02"><b>Acordes</b></span>
       <div class="fld"><span class="k">Patrón</span><select id="pattern"></select></div>
       <div class="fld"><span class="k">Manos</span><select id="hands"><option value="r">diestro</option><option value="l">zurdo</option></select></div>
     </div>
-    <div class="grp"><span class="no">03<b>Canción</b></span>
+    <div class="grp"><span class="no" data-n="03"><b>Canción</b></span>
       <div class="fld"><span class="k">Tema</span><select id="song"></select></div>
-      <button id="play">▶ Tocar</button>
-      <label class="k" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="singChk" checked> Letra</label>
+      <div class="fld"><span class="k">&nbsp;</span><button id="play">▶ Tocar</button></div>
+      <label class="k" for="singChk">Letra<input type="checkbox" id="singChk" checked></label>
     </div>
-    <div class="grp"><span class="no">04<b>Toma</b></span>
+    <div class="grp"><span class="no" data-n="04"><b>Toma</b></span>
       <div class="fld score"><span class="k">Puntos</span><span class="v num" id="score">0</span></div>
       <div class="fld score"><span class="k">Racha</span><span class="v num" id="combo">0</span></div>
       <div class="fld score"><span class="k">Rasgueos</span><span class="v num" id="strums">0</span></div>
     </div>
-    <div class="grp right"><button id="howBtn">Cómo se toca</button></div>
+    <div class="grp right"><button id="howBtn">? Cómo se toca</button><a href="https://joxemari.github.io/hoks" target="_blank" rel="noopener" style="margin-left:8px">built by hoks</a></div>
   </div>
 </section>
 
@@ -426,24 +446,39 @@ function fingerGlyph(f) { return `<span style="display:inline-flex;gap:1px;align
 
 /* ---------- lecciones de la landing ---------- */
 const LESSONS = [
-  { h: "Mano izquierda · cuenta el acorde", pose: 4, cap: "cuatro dedos · la cuarta", table: true },
-  { h: "Mano izquierda · gírala", pose: 1, flip: true, cap: "dorso a la cámara · pasa a menor", plays: "Cm", table: true },
-  { h: "Mano izquierda · levántala", pose: 5, cap: "baja: básico · media: con séptima · alta: agudo · arriba: muy agudo", plays: "G7", table: true },
-  { h: "El patrón · el ritmo va solo", pose: 4, cap: "mantén el acorde y suena · suéltalo y calla", plays: "D DU UDU", table: false, text: ["con un acorde puesto, el ukelele rasguea solo al tempo con el patrón elegido (02 · Patrón)","isla, abajo, corcheas, balada, chuck, vals · o manual","sin pose no suena nada: el silencio también se toca"] },
-  { h: "Mano derecha · el ritmo", pose: 5, cap: "sin ella, negras · con ella, tú mandas", plays: "↻", table: false, text: ["gira la muñeca: palma plana es escaso, de canto son corcheas; en medio, negras y el patrón","mano alta suena fuerte, baja suave","puño: apaga · un golpe rápido: rasgueo extra · pinza: una cuerda"] },
-  { h: "Mano derecha · puntea", pose: 1, pinch: true, cap: "pinza con cada dedo · una cuerda", plays: "G C E A", table: false, text: ["pulgar con índice → cuerda G","con corazón → C · anular → E · meñique → A","un arpegio es una pinza detrás de otra"] },
-  { h: "Canciones guiadas", pose: 0, cap: "el acorde de ahora y el siguiente · suma puntos", plays: "01", table: false, text: ["elige tema y tempo en 01 · Canción","se marca el acorde que toca y el que viene","sumas puntos por pulso correcto y rasgueo a tiempo"] },
+  { h: "Mano izquierda · cuenta el acorde", pose: 1, cap: "un dedo · la primera", table: true, anim: "count" },
+  { h: "Mano izquierda · gírala", pose: 1, cap: "palma a la cámara · mayor", table: true, anim: "flip" },
+  { h: "Mano izquierda · levántala", pose: 5, cap: "baja · básico", plays: "G", table: false, anim: "height", lv: ["muy agudo", "agudo", "con séptima", "básico"] },
+  { h: "El ritmo va solo", pose: 4, cap: "mantén el acorde y suena · suéltalo y calla", plays: "D DU UDU", table: false, anim: "pattern", slots: "D-DU-UDU" },
+  { h: "Gira la muñeca · más ritmo", pose: 5, cap: "palma plana: escaso · de canto: corcheas", plays: "negras", table: false, anim: "roll", lv: ["escaso", "negras", "patrón", "corcheas"] },
+  { h: "Mano derecha · puntea", pose: 1, cap: "pinza del pulgar con cada dedo · una cuerda", plays: "G", table: false, anim: "pinch", lv: ["índice · G", "corazón · C", "anular · E", "meñique · A"] },
+  { h: "Canciones guiadas", pose: 0, cap: "el acorde de ahora, el siguiente y qué dedos", plays: "01", table: false, text: ["elige tema y tempo en 03 · Canción","se marca el acorde que toca, el que viene y la pose","sumas puntos por pulso correcto"] },
 ];
-let li = 0;
+let li = 0, lessonTimer = null, lessonTick = 0;
+function animateLesson() {
+  clearInterval(lessonTimer); lessonTick = 0;
+  lessonTimer = setInterval(() => {
+    lessonTick++; const L = LESSONS[li], box = $("lesson"); if (!box) return;
+    if (L.anim === "count") { const p = (lessonTick % 7) + 1, c = chordFrom(p); box.querySelector(".hand").innerHTML = handSVG(POSE_FINGERS[p], false); box.querySelector(".plays .v").textContent = c.roman + " " + c.name; box.querySelectorAll("table tr").forEach((tr, i) => tr.classList.toggle("on", i === p)); box.querySelector(".cap span").textContent = POSE_HELP[p]; }
+    else if (L.anim === "flip") { const f = lessonTick % 2 === 1, c = chordFrom(1, f); box.querySelector(".hand").innerHTML = handSVG(POSE_FINGERS[1], f); box.querySelector(".plays .v").textContent = c.roman + " " + c.name; box.querySelectorAll("table tr").forEach((tr, i) => tr.classList.toggle("on", i === 1)); box.querySelectorAll("table td:last-child").forEach((td, i) => { if (i) { const cc = chordFrom(i, f); td.textContent = cc.roman + " " + cc.name; } }); box.querySelector(".cap span").textContent = f ? "dorso a la cámara · menor" : "palma a la cámara · mayor"; }
+    else if (L.anim === "height") { const lv = lessonTick % 4, c = chordFrom(5, false, lv); const h = box.querySelector(".hand"); h.style.transform = `translateY(${(1.5 - lv) * 22}px)`; h.style.transition = "transform .4s"; box.querySelector(".plays .v").textContent = c.name; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", 3 - i === lv)); box.querySelector(".cap span").textContent = ["baja · básico", "media · con séptima", "alta · agudo", "arriba · muy agudo"][lv]; }
+    else if (L.anim === "pattern") { const sl = "D-DU-UDU", k = lessonTick % 8; box.querySelectorAll(".slot").forEach((el, i) => el.classList.toggle("on", i === k)); }
+    else if (L.anim === "roll") { const r = (Math.sin(lessonTick / 4) + 1) / 2, h = box.querySelector(".hand"); h.style.transform = `scaleX(${1 - r * .7})`; h.style.transition = "transform .25s"; const d = r < .25 ? 0 : r < .5 ? 1 : r < .75 ? 2 : 3; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === d)); box.querySelector(".plays .v").textContent = DENS_NAME[d]; }
+    else if (L.anim === "pinch") { const k = lessonTick % 4; box.querySelectorAll(".lv").forEach((el, i) => el.classList.toggle("on", i === k)); box.querySelector(".plays .v").textContent = ["G", "C", "E", "A"][k]; }
+  }, LESSONS[li].anim === "pattern" ? 333 : LESSONS[li].anim === "roll" ? 120 : 1000);
+}
 function renderLesson() {
   const L = LESSONS[li]; $("lessonH").textContent = L.h;
-  const c = L.pose ? chordFrom(L.pose, !!L.flip, L.h.includes("levántala") ? 1 : 0) : null;
+  const c = L.pose ? chordFrom(L.pose, false, 0) : null;
   const fingers = L.pose ? POSE_FINGERS[L.pose] : [0,0,0,0,0];
   let right;
-  if (L.table) right = `<table><tr><th>Deg</th><th>Pose</th><th>Acorde</th></tr>${[1,2,3,4,5,6,7].map(p => { const cc = chordFrom(p, !!L.flip, false); return `<tr class="${p === L.pose ? "on" : ""}"><td>0${p}</td><td>${fingerGlyph(POSE_FINGERS[p])}</td><td>${cc.roman}${L.flip ? "°" : ""} ${cc.name}</td></tr>`; }).join("")}</table>`;
+  if (L.table) right = `<table><tr><th>Deg</th><th>Pose</th><th>Acorde</th></tr>${[1,2,3,4,5,6,7].map(p => { const cc = chordFrom(p, false, false); return `<tr class="${p === L.pose ? "on" : ""}"><td>0${p}</td><td>${fingerGlyph(POSE_FINGERS[p])}</td><td>${cc.roman} ${cc.name}</td></tr>`; }).join("")}</table>`;
+  else if (L.lv) right = `<div class="lvs">${L.lv.map((t, i) => `<div class="lv ${i === (L.anim === "height" ? 3 : 0) ? "on" : ""}"><span class="k">0${L.anim === "height" ? 4 - i : i + 1}</span>${t}</div>`).join("")}</div>`;
+  else if (L.slots) right = `<div class="slots">${[...L.slots].map((c, i) => `<span class="slot ${i === 0 ? "on" : ""}">${c === "D" ? "↓" : c === "U" ? "↑" : "·"}</span>`).join("")}<div class="k" style="margin-top:10px">D abajo · U arriba · se repite cada compás</div></div>`;
   else right = `<div style="display:grid;gap:8px;align-content:center;font-size:11px;letter-spacing:.06em;color:var(--ink-62);max-width:210px">${L.text.map((t, i) => `<div><span class="k">0${i + 1}</span><br>${t}</div>`).join("")}</div>`;
-  $("lesson").innerHTML = `<div><div class="plays"><span class="k">Suena</span><span class="v">${L.plays || (c ? c.roman + " " + c.name : "")}</span></div><div class="hand">${handSVG(fingers, !!L.flip)}</div></div>${right}<div class="cap"><span>${L.cap}</span><span class="dots">${LESSONS.map((_, i) => `<i class="${i === li ? "on" : ""}"></i>`).join("")}</span></div>`;
+  $("lesson").innerHTML = `<div><div class="plays"><span class="k">Suena</span><span class="v">${L.plays || (c ? c.roman + " " + c.name : "")}</span></div><div class="hand">${handSVG(fingers, false)}</div></div>${right}<div class="cap"><span>${L.cap}</span><span class="dots">${LESSONS.map((_, i) => `<i class="${i === li ? "on" : ""}"></i>`).join("")}</span></div>`;
   $("sq").innerHTML = LESSONS.map((_, i) => `<i class="${i === li ? "on" : ""}" data-i="${i}"></i>`).join("");
+  animateLesson();
 }
 $("prev").onclick = () => { li = (li + LESSONS.length - 1) % LESSONS.length; renderLesson(); };
 $("nextL").onclick = () => { li = (li + 1) % LESSONS.length; renderLesson(); };
@@ -454,13 +489,17 @@ renderLesson();
 /* ================= DETECCIÓN ================= */
 const d3 = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, (a.z - b.z) * .6);
 const fingerState = { L: [0,0,0,0,0], R: [0,0,0,0,0] };
+const ang = (a, b, c) => { const v1 = { x: a.x - b.x, y: a.y - b.y, z: (a.z - b.z) * .6 }, v2 = { x: c.x - b.x, y: c.y - b.y, z: (c.z - b.z) * .6 };
+  const d = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z, n = Math.hypot(v1.x, v1.y, v1.z) * Math.hypot(v2.x, v2.y, v2.z); return Math.acos(Math.max(-1, Math.min(1, d / (n || 1)))) * 180 / Math.PI; };
 function extended(lm, role = "L") {
   const w = lm[0], palm = d3(w, lm[9]), st = fingerState[role];
-  // dedos: ratio punta/nudillo medio respecto a la muñeca, con histéresis
-  [[8,6],[12,10],[16,14],[20,18]].forEach(([t, p], i) => { const r = d3(lm[t], w) / Math.max(1e-4, d3(lm[p], w)); if (r > 1.22) st[i + 1] = 1; else if (r < 1.06) st[i + 1] = 0; });
-  // pulgar: lejos del nudillo del índice y apuntando fuera del lado del meñique
-  const away = d3(lm[4], lm[5]) / palm, out = d3(lm[4], lm[17]) - d3(lm[2], lm[17]);
-  if (away > .7 && out > 0) st[0] = 1; else if (away < .5 || out < -0.02) st[0] = 0;
+  // dedos 1-4: recto si el ángulo en la articulación media es casi 180° y la punta queda más lejos de la muñeca que el nudillo medio
+  [[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]].forEach(([m, pip, dip, tip], i) => {
+    const straight = ang(lm[m], lm[pip], lm[tip]), far = d3(lm[tip], w) / Math.max(1e-4, d3(lm[pip], w));
+    if (straight > 150 && far > 1.08) st[i + 1] = 1; else if (straight < 120 || far < 0.98) st[i + 1] = 0; });
+  // pulgar: lejos del nudillo del índice y recto en su articulación
+  const away = d3(lm[4], lm[5]) / palm, tstraight = ang(lm[2], lm[3], lm[4]);
+  if (away > .62 && tstraight > 140) st[0] = 1; else if (away < .45 || tstraight < 115) st[0] = 0;
   return st.slice();
 }
 function palmSign(lm) { const a = { x: lm[5].x - lm[0].x, y: lm[5].y - lm[0].y }, b = { x: lm[17].x - lm[0].x, y: lm[17].y - lm[0].y }; return a.x * b.y - a.y * b.x; }
@@ -484,8 +523,9 @@ function processHands(res, now) {
       if (vp !== live.pose || vf !== live.flip || lvl !== live.level) { const wasOpen = chord.open; live = { pose: vp, flip: vf, level: lvl }; chord = chordFrom(vp, vf, lvl); if (vp) seen.chord = true; updateChordUI(); coachCheck();
         if (!chord.open && (wasOpen || vp !== 0) && ctx.currentTime - lastAutoStrum > .16) { strum(chord.frets, true, .6 * rightVel + .2); lastAutoStrum = ctx.currentTime; } } }
     $("plateL").textContent = p ? POSE_SHORT[p] + (flip ? " · dorso" : " · palma") + " · " + LEVEL_NAME[lvl] : "sin pose · al aire";
-    handPos.L = ch.lm; $("hpL").hidden = !helpOn; $("ladL").hidden = false; setLadder("ladL", hy, LEVEL_NAME[lvl].toUpperCase());
-  } else { handPos.L = null; poseHist = []; $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } }
+    handPos.L = ch.lm; { const r = rollOf(ch.lm); rollL = rollL === null ? r : rollL * .75 + r * .25; if (!sh) applyRoll(rollL); }
+    $("hpRollL").style.width = Math.round((rollL || 0) * 100) + "%"; $("hpL").hidden = !helpOn; $("ladL").hidden = false; setLadder("ladL", hy, LEVEL_NAME[lvl].toUpperCase());
+  } else { handPos.L = null; rollL = null; poseHist = []; $("plateL").textContent = "fuera de cuadro"; $("hpL").hidden = true; $("ladL").hidden = true; if (live.pose) { live = { pose: 0, flip: false, level: 0 }; chord = chordFrom(0); updateChordUI(); } }
   if (sh) {
     const lm = sh.lm, y = lm[9].y, e = extended(lm, "R"), fist = e.reduce((a, b) => a + b, 0) === 0;
     if (ss.y !== null) {
@@ -504,20 +544,14 @@ function processHands(res, now) {
     } else { ss.v = undefined; ss.armed = true; }
     ss.y = y; ss.t = now;
     rightVel = Math.max(.3, Math.min(1, 1.25 - y));   // mano alta = más fuerte
-    { // giro del antebrazo: la palma se ve más estrecha cuanto más de canto está
-      const w = Math.hypot(lm[17].x - lm[5].x, lm[17].y - lm[5].y) / Math.max(1e-4, Math.hypot(lm[9].x - lm[0].x, lm[9].y - lm[0].y));
-      const r = Math.max(0, Math.min(1, (0.82 - w) / 0.5));          // 0 palma plana · 1 de canto
-      rollS = rollS === null ? r : rollS * .75 + r * .25; rollVal = rollS;
-      const up = [.22, .47, .72], dn = [.17, .42, .67]; let d = density;
-      while (d < 3 && rollS > up[d]) d++; while (d > 0 && rollS < dn[d - 1]) d--;
-      if (d !== density) { density = d; setBeats(); } }
+    { const r = rollOf(lm); rollS = rollS === null ? r : rollS * .75 + r * .25; applyRoll(rollS); }
     const palm = d3(lm[0], lm[9]);
     [8,12,16,20].forEach((tip, i) => { const dd = d3(lm[4], lm[tip]), close = dd < .28 * palm; if (close && !ss.pinch[i]) { pluck(i, chord.frets[i], .75, ctx.currentTime); onStrum(); } ss.pinch[i] = close ? 1 : (dd > .4 * palm ? 0 : ss.pinch[i]); });
     const hb = Math.round(rightVel * 5), bars = "▮".repeat(hb) + "▯".repeat(5 - hb);
     const hit = now - (ss.flashT || 0) < 220;
     $("plateR").innerHTML = hit ? `<span style="color:var(--ink)">${ss.flashDir > 0 ? "↓" : "↑"} golpe</span>` : `${DENS_NAME[density]} · giro ${rollVal.toFixed(2)} · <span class="num">${bars}</span>${fist ? " · puño" : ""}`;
     handPos.R = lm; renderHpR(fist); $("hpR").hidden = !helpOn; $("ladR").hidden = false; setLadder("ladR", y, DENS_NAME[density].toUpperCase() + " · " + Math.round(rightVel * 100));
-  } else { handPos.R = null; $("hpR").hidden = true; $("ladR").hidden = true; ss.y = null; ss.v = undefined; ss.armed = true; rightVel = .65; rollS = null; if (density !== 1) { density = 1; setBeats(); } $("plateR").textContent = "fuera · negras · métela para dar ritmo"; renderHpR(false); }
+  } else { handPos.R = null; $("hpR").hidden = true; $("ladR").hidden = true; ss.y = null; ss.v = undefined; ss.armed = true; rightVel = .65; rollS = null; if (!ch && density !== 1) { density = 1; setBeats(); } $("plateR").textContent = "fuera · negras · métela para dar ritmo"; renderHpR(false); }
 }
 let flashes = [];
 function updateChordUI() {
@@ -540,19 +574,19 @@ function draw(res) {
     const c = lm[9]; cx.beginPath(); cx.moveTo(c.x * W - 6, c.y * H); cx.lineTo(c.x * W + 6, c.y * H); cx.moveTo(c.x * W, c.y * H - 6); cx.lineTo(c.x * W, c.y * H + 6); cx.stroke();
   });
   // etiquetas pegadas a la mano y arco de giro (texto sin espejo)
-  const label = (lm, lines, arcVal) => {
+  const label = (lm, lines, arcVal, rightSide = arcVal !== undefined && lm === handPos.R) => {
     const wx = lm[0].x * W, wy = Math.min(lm[0].y * H, H - 60), px = lm[9].x * W, py = lm[9].y * H;
     cx.save(); cx.translate(W, 0); cx.scale(-1, 1);
     const sx = W - wx, spx = W - px;
     if (arcVal !== undefined) { cx.strokeStyle = "rgba(159,211,255,.5)"; cx.lineWidth = 1; cx.beginPath(); cx.arc(sx, wy - 40, 70, Math.PI * .15, Math.PI * .85); cx.stroke();
       const ang = Math.PI * (.85 - .7 * arcVal); cx.fillStyle = "#e9e7e2"; cx.beginPath(); cx.arc(sx + Math.cos(ang) * 70, wy - 40 + Math.sin(ang) * 70, 3.5, 0, 7); cx.fill(); }
-    cx.font = "11px Geist Mono, monospace"; cx.textAlign = arcVal !== undefined ? "left" : "right";
-    const lx = arcVal !== undefined ? spx + 90 : spx - 90;
-    cx.strokeStyle = "rgba(159,211,255,.35)"; cx.beginPath(); cx.moveTo(spx, py); cx.lineTo(lx + (arcVal !== undefined ? -8 : 8), py - 4); cx.stroke();
+    cx.font = "11px Geist Mono, monospace"; cx.textAlign = rightSide ? "left" : "right";
+    const lx = rightSide ? spx + 90 : spx - 90;
+    cx.strokeStyle = "rgba(159,211,255,.35)"; cx.beginPath(); cx.moveTo(spx, py); cx.lineTo(lx + (rightSide ? -8 : 8), py - 4); cx.stroke();
     lines.forEach((t, i) => { cx.fillStyle = i ? "rgba(233,231,226,.62)" : "#e9e7e2"; cx.fillText(t, lx, py + i * 15); });
     cx.restore();
   };
-  if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose"]);
+  if (handPos.L) label(handPos.L, ["L · ACORDES", live.pose ? `${chord.roman} ${chord.name} · ${LEVEL_NAME[live.level]}` : "sin pose", ...(handPos.R ? [] : [`giro ${(rollL || 0).toFixed(2)} · ${DENS_NAME[density]}`])], handPos.R ? undefined : (rollL || 0));
   if (handPos.R) label(handPos.R, ["R · RITMO", `giro ${rollVal.toFixed(2)} · ${DENS_NAME[density]}`], rollVal);
   const now = performance.now(); flashes = flashes.filter(f => now - f.t < 240);
   flashes.forEach(f => { const k = (now - f.t) / 240; cx.strokeStyle = `rgba(233,231,226,${1 - k})`; cx.lineWidth = 1.5; const y = f.y * H + (f.down ? 1 : -1) * 70 * k; cx.beginPath(); cx.moveTo(f.x * W - 50, y); cx.lineTo(f.x * W + 50, y); cx.stroke(); });
@@ -584,7 +618,7 @@ const COACH = [
   { t1: "Cambia a cuatro dedos", t2: "la cuarta · mira cómo cambia el nombre", fingers: POSE_FINGERS[4], test: () => live.pose === 4 },
   { t1: "Gira la mano", t2: "dorso a la cámara · el acorde pasa a menor", fingers: POSE_FINGERS[4], flip: true, test: () => live.flip && live.pose > 0 },
   { t1: "Mano derecha: es el ritmo · enséñala", t2: "sin ella el acorde va en negras · con ella lo moldeas", fingers: [1,1,1,1,1], test: () => ss.y !== null },
-  { t1: "Gira la muñeca: más ritmo", t2: "palma plana: escaso · de canto: corcheas", fingers: [1,1,1,1,1], test: () => density >= 2 },
+  { t1: "Gira la muñeca: más ritmo", t2: "vale cualquier mano · palma plana: escaso · de canto: corcheas", fingers: [1,1,1,1,1], test: () => density >= 2 },
   { t1: "Súbela y bájala: la fuerza", t2: "alta fuerte · baja suave · puño apaga · golpe rápido añade un rasgueo", fingers: [1,1,1,1,1], test: () => rightVel > .85 || seen.strum },
   { t1: "Ya está · elige canción en 01 o patrón en 02", t2: "el acorde lo pone tu mano · el ritmo va solo", fingers: [1,1,1,1,1], test: () => false },
 ];
@@ -616,7 +650,9 @@ let patKey = "isla";
 const pat = () => PATTERNS[patKey];
 const T = { bpm: 90, slot: 0, next: 0, timer: null, nslots: 8, bar: 4, swing: .5, beatT: 0 };
 let rightVel = .65;   // la altura de la mano derecha la modula
-let lastAutoStrum = 0;
+let lastAutoStrum = 0, rollL = null;
+function rollOf(lm) { const w = Math.hypot(lm[17].x - lm[5].x, lm[17].y - lm[5].y) / Math.max(1e-4, Math.hypot(lm[9].x - lm[0].x, lm[9].y - lm[0].y)); return Math.max(0, Math.min(1, (0.82 - w) / 0.5)); }
+function applyRoll(r) { rollVal = r; const up = [.22, .47, .72], dn = [.17, .42, .67]; let d = density; while (d < 3 && r > up[d]) d++; while (d > 0 && r < dn[d - 1]) d--; if (d !== density) { density = d; setBeats(); } }
 let density = 1, rollS = null, rollVal = 0, handPos = { L: null, R: null };      // 0 escaso · 1 negras · 2 patrón · 3 corcheas  (giro de muñeca)
 const DENS_NAME = ["escaso", "negras", "patrón", "corcheas"];
 function slotsNow() { const base = pat().slots, n = base.length; if (patKey === "manual") return base;
@@ -754,7 +790,7 @@ $("metro").onclick = e => { metroOn = !metroOn; e.target.textContent = "Metróno
 $("tempo").oninput = e => { $("tempoVal").textContent = e.target.value; T.bpm = +e.target.value; };
 $("pattern").innerHTML = Object.entries(PATTERNS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
 $("pattern").onchange = e => setPattern(e.target.value);
-$("song").innerHTML = SONGS.map((s, i) => `<option value="${i}">${s.title} · ${s.bar}/4</option>`).join("");
+$("song").innerHTML = SONGS.map((s, i) => `<option value="${i}">${s.title}</option>`).join("");
 $("song").onchange = () => { const s = SONGS[$("song").value]; $("tempo").value = s.bpm; $("tempoVal").textContent = s.bpm; T.bpm = s.bpm; };
 $("play").onclick = () => playing ? stopSong() : startSong();
 $("singChk").onchange = renderSing;
